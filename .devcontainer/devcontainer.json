@@ -1,0 +1,56 @@
+{
+  "name": "Lorya DevContainer",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "remoteUser": "root",
+  "containerName": "lorya-devcontainer",
+  "workspaceFolder": "/workspaces/loryamonorepo",
+  "settings": {
+    "workbench.colorTheme": "IntelliJ IDEA New UI Dark",
+    "workbench.iconTheme": "material-icon-theme",
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    },
+    "eslint.validate": [
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact"
+    ],
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "typescript.suggest.autoImports": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "files.eol": "\n",
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true
+  },
+  "extensions": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-typescript-next",
+    "bradlc.vscode-tailwindcss",
+    "dsznajder.es7-react-js-snippets",
+    "ms-azuretools.vscode-docker",
+    "compassak.intellij-idea-new-ui",
+    "pkief.material-icon-theme",
+    "ms-vscode-remote.remote-containers",
+    "ms-vscode-remote.remote-ssh",
+    "ms-vscode-remote.remote-ssh-edit",
+    "ms-vscode-remote.remote-ssh-explorer",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    "ms-vscode-remote.vscode-json",
+    "lang2hong.githd",
+    "phil294.git-log--graph"
+  ],
+  "mounts": [
+    "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,consistency=cached"
+  ],
+  "postCreateCommand": "yarn install && yarn prepare"
+}

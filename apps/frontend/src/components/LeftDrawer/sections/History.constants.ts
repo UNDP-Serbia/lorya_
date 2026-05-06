@@ -1,0 +1,28 @@
+import { ActivityOperation } from '../../../api'
+
+export const OPERATION_LABEL: Record<ActivityOperation, string> = {
+  [ActivityOperation.LAYOUT_IDENTIFICATION]: 'Layout Identification',
+  [ActivityOperation.IMAGE_ENHANCEMENT]: 'Image Enhancement',
+  [ActivityOperation.OCR]: 'OCR',
+  [ActivityOperation.POST_OCR_CORRECTION]: 'Post-OCR Correction',
+  [ActivityOperation.ROTATE]: 'Rotation',
+  [ActivityOperation.CROP]: 'Crop',
+  [ActivityOperation.BRIGHTNESS_ADJUST]: 'Brightness',
+  [ActivityOperation.CONTRAST_ADJUST]: 'Contrast',
+  [ActivityOperation.SHARPNESS_ADJUST]: 'Sharpness',
+  [ActivityOperation.PDF_SPLIT]: 'PDF Split',
+  [ActivityOperation.SEGMENT_ADD]: 'Add segment',
+  [ActivityOperation.SEGMENT_RESHAPE]: 'Reshape',
+  [ActivityOperation.SEGMENT_DELETE]: 'Delete segment',
+  [ActivityOperation.SEGMENT_LABEL_CHANGE]: 'Label change',
+  [ActivityOperation.SEGMENT_REORDER]: 'Reorder segment',
+  [ActivityOperation.SEGMENT_REVERT]: 'Segment revert',
+  [ActivityOperation.SEGMENTS_CROP]: 'Crop segments',
+  [ActivityOperation.OCR_TEXT_EDIT]: 'OCR text edit',
+  [ActivityOperation.POST_OCR_TEXT_EDIT]: 'Post-OCR text edit',
+  [ActivityOperation.LAYOUT_IDENTIFICATION_REVERT]: 'Layout revert',
+  [ActivityOperation.IMAGE_ENHANCEMENT_REVERT]: 'Enhancement revert',
+  [ActivityOperation.OCR_REVERT]: 'OCR revert',
+  [ActivityOperation.POST_OCR_REVERT]: 'Post-OCR revert',
+  [ActivityOperation.FILE_RESET]: 'File reset',
+}

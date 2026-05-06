@@ -1,0 +1,74 @@
+import os
+
+import regex as re
+
+import json
+import argparse
+
+
+def parse_text(input_params): 
+    """
+    Parse OCRed text and normalize it.
+
+    Parameters:
+        input_params (obj): 
+            text_id (str): Unique text block identifier. 
+            lines [str]: JSON with lines and words.
+    
+    Returns:
+        JSON with postOCRed text.
+    """
+
+    # Read from input params
+    text_id = input_params["text_id"]
+    lines = input_params["lines"]
+    
+    
+    # Parse text
+    # TODO regex
+
+    # Calculate statistics
+    statistics = {
+        "cer": 20.2,
+        "wer": 10.4,
+        "avg_word_confidence": 0.89
+    }
+
+    # Prepare output
+    output = {
+        "id": text_id, 
+
+        "status": {
+            "success": True,
+            "messageCode": "PROCESSING_SUCCESS",
+            "messageText": "Text is successfully postOCRed."
+        }, 
+
+        "lines": lines,
+        "statistics": statistics
+    }
+
+    return json.dumps(output, ensure_ascii=False)
+
+
+if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser(description="Script that runs postOCR step")
+    parser.add_argument("postocr_input_json",  help="JSON with text id and text lines")
+    
+    args = parser.parse_args()
+
+    postocr_input = json.loads(args.postocr_input_json)
+    text_id = postocr_input['id']
+    lines = postocr_input['lines']
+    
+
+    postocr_results = parse_text({
+        "text_id": text_id, 
+        "lines": lines, 
+    })
+
+    print(postocr_results)
+
+    # test run:
+    # python run_postocr.py '{"id": "461a4bf8-7c14-47e9-80db-d4cda9048a8f", "lines": [{"words": [{"word_id": 1, "word_text": "је\"", "word_confidence": 52.942905}, {"word_id": 2, "word_text": "\"поверење", "word_confidence": 89.310623}, {"word_id": 3, "word_text": "прбиграо.", "word_confidence": 50.722488}, {"word_id": 4, "word_text": "\"човек", "word_confidence": 46.829906}, {"word_id": 5, "word_text": "\"ниских.", "word_confidence": 55.616501}, {"word_id": 1, "word_text": "  ", "word_confidence": 95}, {"word_id": 1, "word_text": " ", "word_confidence": 95}, {"word_id": 1, "word_text": " ", "word_confidence": 95}, {"word_id": 1, "word_text": " ", "word_confidence": 95}, {"word_id": 1, "word_text": " ", "word_confidence": 95}, {"word_id": 1, "word_text": " ", "word_confidence": 95}, {"word_id": 1, "word_text": " ", "word_confidence": 95}], "line_id": 1}, {"words": [{"word_id": 1, "word_text": "\"моралних", "word_confidence": 85.581787}, {"word_id": 2, "word_text": "инстиката.", "word_confidence": 88.617905}, {"word_id": 3, "word_text": "„И:не:", "word_confidence": 0}, {"word_id": 4, "word_text": "заборавља:", "word_confidence": 26.563179}, {"word_id": 1, "word_text": " ", "word_confidence": 95}], "line_id": 2}, {"words": [{"word_id": 1, "word_text": "ући:", "word_confidence": 0}, {"word_id": 2, "word_text": "никад", "word_confidence": 53.049538}, {"word_id": 3, "word_text": "да.", "word_confidence": 90.366989}, {"word_id": 4, "word_text": "уму:", "word_confidence": 24.056015}, {"word_id": 5, "word_text": "ЈЕ.", "word_confidence": 42.350216}, {"word_id": 6, "word_text": "драгоцени", "word_confidence": 96.555428}, {"word_id": 7, "word_text": "са-", "word_confidence": 75.988846}], "line_id": 3}, {"words": [{"word_id": 1, "word_text": "радник:", "word_confidence": 71.839218}, {"word_id": 2, "word_text": "\"пао", "word_confidence": 59.597469}, {"word_id": 3, "word_text": "као", "word_confidence": 96.020439}, {"word_id": 4, "word_text": "жртва.", "word_confidence": 48.285805}, {"word_id": 5, "word_text": "неједнаког,", "word_confidence": 76.637238}, {"word_id": 6, "word_text": "мо-", "word_confidence": 65.951477}], "line_id": 4}, {"words": [{"word_id": 1, "word_text": "рала", "word_confidence": 50.041718}, {"word_id": 2, "word_text": "за", "word_confidence": 54.945393}, {"word_id": 3, "word_text": "\"људе.", "word_confidence": 54.032589}, {"word_id": 4, "word_text": "Ба", "word_confidence": 0}, {"word_id": 5, "word_text": "жене", "word_confidence": 93.83947}, {"word_id": 6, "word_text": "„", "word_confidence": 55.812363}, {"word_id": 7, "word_text": "враћаће_", "word_confidence": 49.152382}, {"word_id": 8, "word_text": "са", "word_confidence": 70.85659}, {"word_id": 9, "word_text": "Ц", "word_confidence": 17.225716}], "line_id": 5}, {"words": [{"word_id": 1, "word_text": "тај", "word_confidence": 89.718277}, {"word_id": 2, "word_text": "\"болни.", "word_confidence": 82.517189}, {"word_id": 3, "word_text": "проблем“,", "word_confidence": 60.695652}, {"word_id": 4, "word_text": "„безброј“", "word_confidence": 10.162598}, {"word_id": 5, "word_text": "„пута", "word_confidence": 69.888687}, {"word_id": 6, "word_text": "ГЕ", "word_confidence": 0}], "line_id": 6}, {"words": [{"word_id": 1, "word_text": "убеђиваве.", "word_confidence": 39.804466}, {"word_id": 2, "word_text": "и", "word_confidence": 64.186775}, {"word_id": 3, "word_text": "доказиваће.", "word_confidence": 29.571159}, {"word_id": 4, "word_text": "да", "word_confidence": 95.600967}, {"word_id": 5, "word_text": "жена.", "word_confidence": 64.127266}, {"word_id": 6, "word_text": "мора", "word_confidence": 79.824379}], "line_id": 7}]}'

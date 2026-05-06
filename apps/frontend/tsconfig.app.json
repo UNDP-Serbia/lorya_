@@ -1,0 +1,4 @@
+{
+  "extends": "@shared/config/tsconfig/react/tsconfig.app.json",
+  "include": ["src"]
+}

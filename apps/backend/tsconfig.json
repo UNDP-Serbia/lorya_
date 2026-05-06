@@ -1,0 +1,14 @@
+{
+  "extends": "../../shared/config/src/tsconfig/nest/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "paths": {
+      "@shared/config/*": ["../../shared/config/src/*"]
+    },
+  },
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  }
+}

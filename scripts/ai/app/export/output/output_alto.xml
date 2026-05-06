@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<alto>
+  <Layout>
+    <Page WIDTH="2000" HEIGHT="3000" PHYSICAL_IMG_NR="1">
+      <PrintSpace HPOS="0" VPOS="0" WIDTH="2000" HEIGHT="3000">
+        <TextBlock ID="block_0" HPOS="120" VPOS="180" WIDTH="800" HEIGHT="160">
+          <TextLine HPOS="120" VPOS="180" WIDTH="800" HEIGHT="53">
+            <String ID="b0_l0_w0" CONTENT="Digital" HPOS="120" VPOS="180" WIDTH="70" HEIGHT="53" WC="0.97"/>
+            <String ID="b0_l0_w1" CONTENT="humanities" HPOS="198" VPOS="180" WIDTH="100" HEIGHT="53" WC="0.97"/>
+            <String ID="b0_l0_w2" CONTENT="projects" HPOS="306" VPOS="180" WIDTH="80" HEIGHT="53" WC="0.97"/>
+            <String ID="b0_l0_w3" CONTENT="rely" HPOS="394" VPOS="180" WIDTH="40" HEIGHT="53" WC="0.97"/>
+            <String ID="b0_l0_w4" CONTENT="on" HPOS="442" VPOS="180" WIDTH="20" HEIGHT="53" WC="0.97"/>
+          </TextLine>
+          <TextLine HPOS="120" VPOS="233" WIDTH="800" HEIGHT="53">
+            <String ID="b0_l1_w0" CONTENT="OCR" HPOS="120" VPOS="233" WIDTH="30" HEIGHT="53" WC="0.97"/>
+            <String ID="b0_l1_w1" CONTENT="processing" HPOS="158" VPOS="233" WIDTH="100" HEIGHT="53" WC="0.97"/>
+            <String ID="b0_l1_w2" CONTENT="and" HPOS="266" VPOS="233" WIDTH="30" HEIGHT="53" WC="0.97"/>
+            <String ID="b0_l1_w3" CONTENT="layout" HPOS="304" VPOS="233" WIDTH="60" HEIGHT="53" WC="0.97"/>
+            <String ID="b0_l1_w4" CONTENT="analysis" HPOS="372" VPOS="233" WIDTH="80" HEIGHT="53" WC="0.97"/>
+          </TextLine>
+          <TextLine HPOS="120" VPOS="286" WIDTH="800" HEIGHT="53">
+            <String ID="b0_l2_w0" CONTENT="to" HPOS="120" VPOS="286" WIDTH="20" HEIGHT="53" WC="0.97"/>
+            <String ID="b0_l2_w1" CONTENT="understand" HPOS="148" VPOS="286" WIDTH="100" HEIGHT="53" WC="0.97"/>
+            <String ID="b0_l2_w2" CONTENT="historical" HPOS="256" VPOS="286" WIDTH="100" HEIGHT="53" WC="0.97"/>
+            <String ID="b0_l2_w3" CONTENT="documents." HPOS="364" VPOS="286" WIDTH="100" HEIGHT="53" WC="0.97"/>
+          </TextLine>
+        </TextBlock>
+        <TextBlock ID="block_1" HPOS="120" VPOS="380" WIDTH="800" HEIGHT="140">
+          <TextLine HPOS="120" VPOS="380" WIDTH="800" HEIGHT="46">
+            <String ID="b1_l0_w0" CONTENT="The" HPOS="120" VPOS="380" WIDTH="30" HEIGHT="46" WC="0.95"/>
+            <String ID="b1_l0_w1" CONTENT="ALTO" HPOS="158" VPOS="380" WIDTH="40" HEIGHT="46" WC="0.95"/>
+            <String ID="b1_l0_w2" CONTENT="XML" HPOS="206" VPOS="380" WIDTH="30" HEIGHT="46" WC="0.95"/>
+            <String ID="b1_l0_w3" CONTENT="format" HPOS="244" VPOS="380" WIDTH="60" HEIGHT="46" WC="0.95"/>
+            <String ID="b1_l0_w4" CONTENT="preserves" HPOS="312" VPOS="380" WIDTH="90" HEIGHT="46" WC="0.95"/>
+          </TextLine>
+          <TextLine HPOS="120" VPOS="426" WIDTH="800" HEIGHT="46">
+            <String ID="b1_l1_w0" CONTENT="the" HPOS="120" VPOS="426" WIDTH="30" HEIGHT="46" WC="0.95"/>
+            <String ID="b1_l1_w1" CONTENT="structure" HPOS="158" VPOS="426" WIDTH="90" HEIGHT="46" WC="0.95"/>
+            <String ID="b1_l1_w2" CONTENT="of" HPOS="256" VPOS="426" WIDTH="20" HEIGHT="46" WC="0.95"/>
+            <String ID="b1_l1_w3" CONTENT="scanned" HPOS="284" VPOS="426" WIDTH="70" HEIGHT="46" WC="0.95"/>
+            <String ID="b1_l1_w4" CONTENT="pages" HPOS="362" VPOS="426" WIDTH="50" HEIGHT="46" WC="0.95"/>
+          </TextLine>
+          <TextLine HPOS="120" VPOS="473" WIDTH="800" HEIGHT="46">
+            <String ID="b1_l2_w0" CONTENT="and" HPOS="120" VPOS="473" WIDTH="30" HEIGHT="46" WC="0.95"/>
+            <String ID="b1_l2_w1" CONTENT="enables" HPOS="158" VPOS="473" WIDTH="70" HEIGHT="46" WC="0.95"/>
+            <String ID="b1_l2_w2" CONTENT="advanced" HPOS="236" VPOS="473" WIDTH="80" HEIGHT="46" WC="0.95"/>
+            <String ID="b1_l2_w3" CONTENT="analysis." HPOS="324" VPOS="473" WIDTH="90" HEIGHT="46" WC="0.95"/>
+          </TextLine>
+        </TextBlock>
+      </PrintSpace>
+    </Page>
+  </Layout>
+</alto>

@@ -1,0 +1,103 @@
+image: node:22-slim
+
+definitions:
+  caches:
+    yarn-berry: .yarn/cache
+
+pipelines:
+  branches:
+    main:
+      - step:
+          name: Build
+          caches:
+            - node
+            - yarn-berry
+          script:
+            - apt-get update && apt-get install -y --no-install-recommends rsync
+            - npm i -g corepack
+            - corepack enable
+            - corepack prepare yarn@stable --activate
+            - YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
+            - export VITE_API_URL="$VITE_API_URL"
+            - export VITE_IMAGE_FETCH_URL="$VITE_IMAGE_FETCH_URL"
+            - yarn build
+            - mkdir -p build/frontend build/backend build/ai
+            - cp -a apps/frontend/dist/. build/frontend/
+            - cp -a apps/backend/dist build/backend/
+            - cp apps/backend/package.json build/backend/
+            - cp -a apps/backend/node_modules build/backend/
+            - rsync -a --include='*/' --include='*.py' --include='*.pt' --include='*.yml' --include='*.yaml' --include='README.md' --exclude='*' scripts/ai/ build/ai/
+          artifacts:
+            - build/**
+
+      - step:
+          name: Deploy
+          deployment: production
+          image: alpine:latest
+          script:
+            - apk add --no-cache openssh-client rsync
+
+            # SSH setup
+            - mkdir -p ~/.ssh
+            - ssh-keyscan -p "$SSH_PORT" -T 10 "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+            - ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "echo 'SSH OK'"
+
+            # Release name
+            - export RELEASE="release-$(date +%Y%m%d%H%M%S)"
+            - export REMOTE_BASE="/var/www/lorya"
+
+            # Create release dir
+            - ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "mkdir -p $REMOTE_BASE/releases/$RELEASE"
+
+            # Upload artifacts
+            - rsync -az -e "ssh -p $SSH_PORT" build/ "$SSH_USER@$SSH_HOST:$REMOTE_BASE/releases/$RELEASE/"
+
+            # Activate release and restart services
+            - |
+              ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" bash --login -s "$RELEASE" <<'REMOTE'
+              set -e
+              REMOTE_BASE="/var/www/lorya"
+              RELEASE="$1"
+
+              # Symlink backend .env.local
+              ln -sfn $REMOTE_BASE/shared/backend/.env.local $REMOTE_BASE/releases/$RELEASE/backend/.env.local
+
+              # Atomic symlink switch
+              ln -sfn $REMOTE_BASE/releases/$RELEASE $REMOTE_BASE/current_tmp
+              mv -T $REMOTE_BASE/current_tmp $REMOTE_BASE/current
+
+              # Load nvm if available
+              export NVM_DIR="$HOME/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+              # Ensure PM2 is installed
+              command -v pm2 &> /dev/null || npm i -g pm2
+
+              # Restart backend via PM2
+              pm2 delete lorya-backend 2>/dev/null || true
+              cd $REMOTE_BASE/current/backend
+              pm2 start dist/main.js --name lorya-backend
+              pm2 save
+
+              # Reload Nginx for frontend
+              sudo systemctl reload nginx
+
+              # Conda env update (only if environment.linux.yml changed)
+              if command -v conda &> /dev/null || [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
+                [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ] && . "$HOME/miniconda3/etc/profile.d/conda.sh"
+                NEW_HASH=$(md5sum $REMOTE_BASE/current/ai/environment.linux.yml | awk '{print $1}')
+                OLD_HASH=""
+                [ -f $REMOTE_BASE/shared/conda_env_hash ] && OLD_HASH=$(cat $REMOTE_BASE/shared/conda_env_hash)
+                if [ "$NEW_HASH" != "$OLD_HASH" ]; then
+                  echo "Conda env changed, updating..."
+                  conda env update --name lorya -f $REMOTE_BASE/current/ai/environment.linux.yml --prune
+                  echo "$NEW_HASH" > $REMOTE_BASE/shared/conda_env_hash
+                else
+                  echo "Conda env unchanged, skipping"
+                fi
+              fi
+
+              # Cleanup: keep last 3 releases
+              cd $REMOTE_BASE/releases
+              ls -1dt release-* | tail -n +4 | xargs rm -rf || true
+              REMOTE

@@ -1,0 +1,22 @@
+[
+  {
+    "segment_id": "1",
+    "bbox": [120, 180, 920, 340],
+    "layout_confidence": 0.97,
+    "lines": [
+      "Digital humanities projects rely on",
+      "OCR processing and layout analysis",
+      "to understand historical documents."
+    ]
+  },
+  {
+    "segment_id": "2",
+    "bbox": [120, 380, 920, 520],
+    "layout_confidence": 0.95,
+    "lines": [
+      "The ALTO XML format preserves",
+      "the structure of scanned pages",
+      "and enables advanced analysis."
+    ]
+  }
+]

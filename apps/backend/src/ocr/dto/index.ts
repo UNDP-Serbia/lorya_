@@ -1,0 +1,5 @@
+export * from './model-process.dto'
+export * from './ocr-processing-result.dto'
+export * from './ocr-model.dto'
+export * from './create-ocr-model.dto'
+export * from './update-ocr-model.dto'

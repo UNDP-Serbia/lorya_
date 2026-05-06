@@ -1,0 +1,46 @@
+{
+  "name": "@shared/ui",
+  "version": "1.1.0",
+  "type": "module",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "format:check": "prettier --check .",
+    "format": "prettier --write ."
+  },
+  "peerDependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "dependencies": {
+    "@annotorious/react": "^3.0.17",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.2",
+    "@mui/material": "^7.3.2",
+    "@mui/styled-engine-sc": "^7.3.2",
+    "@mui/system": "^7.3.8",
+    "@mui/x-data-grid": "^7.3.2",
+    "styled-components": "^6.1.19"
+  },
+  "devDependencies": {
+    "@shared/config": "*",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "eslint": "^9.36.0",
+    "openseadragon": "^5.0.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2"
+  },
+  "lint-staged": {
+    "*/**/*.{js,jsx,ts,tsx,css,scss}": [
+      "yarn format:check",
+      "yarn lint"
+    ]
+  }
+}

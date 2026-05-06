@@ -1,0 +1,43 @@
+module.exports = {
+  extends: ['@commitlint/config-conventional'],
+  rules: {
+    'header-max-length': [2, 'always', 100],
+    'subject-case': [
+      2,
+      'never',
+      ['sentence-case', 'start-case', 'pascal-case', 'upper-case'],
+    ],
+    'subject-empty': [2, 'never'],
+    'subject-full-stop': [2, 'never', '.'],
+    'body-leading-blank': [1, 'always'],
+    'body-max-line-length': [2, 'always', 100],
+    'footer-leading-blank': [1, 'always'],
+    'footer-max-line-length': [2, 'always', 100],
+    'type-case': [2, 'always', 'lower-case'],
+    'scope-case': [2, 'always', 'lower-case'],
+    'scope-empty': [2, 'never'],
+    'type-empty': [2, 'never'],
+    'type-enum': [
+      2,
+      'always',
+      [
+        'feat',
+        'chore',
+        'fix',
+        'ci',
+        'docs',
+        'config',
+        'refactor',
+        'revert',
+        'style',
+        'test',
+        'upgrade',
+      ],
+    ],
+    'scope-enum': [
+      2,
+      'always',
+      ['project', 'frontend', 'backend', 'shared', 'ai'],
+    ],
+  },
+}

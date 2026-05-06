@@ -1,0 +1,40 @@
+{
+  "name": "lorya",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "format:check": "turbo run format:check",
+    "format": "turbo run format",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.0.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.1",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.8",
+    "typescript": "5.9.2"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "yarn@4.9.2",
+  "workspaces": [
+    "apps/*",
+    "shared/*"
+  ],
+  "lint-staged": {
+    "apps/**/*.{js,jsx,ts,tsx,css,scss}": [
+      "yarn format:check",
+      "yarn lint"
+    ],
+    "shared/ui/**/*.{js,jsx,ts,tsx,css,scss}": [
+      "yarn format:check",
+      "yarn lint"
+    ]
+  }
+}

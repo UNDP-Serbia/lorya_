@@ -1,0 +1,216 @@
+{
+    "imageId": "1",
+    "inputPath": "input/cropped_zena-i-svet-decembar-1931-15_image_16.jpg",
+    "status": {
+        "success": true,
+        "messageCode": "PROCESSING_SUCCESS",
+        "messageText": "Text is successfully OCRed."
+    },
+    "lang": "srp",
+    "script": "cyrillic",
+    "lines": [
+        {
+            "line_id": "1",
+            "words": [
+                {
+                    "word_id": "1",
+                    "word_confidence": 91.79084,
+                    "word_text": "Блузе"
+                },
+                {
+                    "word_id": "2",
+                    "word_confidence": 96.622795,
+                    "word_text": "су"
+                },
+                {
+                    "word_id": "3",
+                    "word_confidence": 96.075615,
+                    "word_text": "мало"
+                },
+                {
+                    "word_id": "4",
+                    "word_confidence": 93.831779,
+                    "word_text": "у"
+                },
+                {
+                    "word_id": "5",
+                    "word_confidence": 96.477577,
+                    "word_text": "струку"
+                },
+                {
+                    "word_id": "6",
+                    "word_confidence": 92.897324,
+                    "word_text": "набране"
+                }
+            ]
+        },
+        {
+            "line_id": "2",
+            "words": [
+                {
+                    "word_id": "1",
+                    "word_confidence": 95.890495,
+                    "word_text": "и"
+                },
+                {
+                    "word_id": "2",
+                    "word_confidence": 95.890495,
+                    "word_text": "на"
+                },
+                {
+                    "word_id": "3",
+                    "word_confidence": 93.304459,
+                    "word_text": "леђима"
+                },
+                {
+                    "word_id": "4",
+                    "word_confidence": 92.817978,
+                    "word_text": "подуже"
+                },
+                {
+                    "word_id": "5",
+                    "word_confidence": 93.124825,
+                    "word_text": "кројене"
+                },
+                {
+                    "word_id": "6",
+                    "word_confidence": 96.948204,
+                    "word_text": "тако"
+                }
+            ]
+        },
+        {
+            "line_id": "3",
+            "words": [
+                {
+                    "word_id": "1",
+                    "word_confidence": 94.075409,
+                    "word_text": "да"
+                },
+                {
+                    "word_id": "2",
+                    "word_confidence": 91.412842,
+                    "word_text": "препадну"
+                },
+                {
+                    "word_id": "3",
+                    "word_confidence": 96.193352,
+                    "word_text": "преко"
+                },
+                {
+                    "word_id": "4",
+                    "word_confidence": 96.104584,
+                    "word_text": "појаса"
+                },
+                {
+                    "word_id": "5",
+                    "word_confidence": 95.920647,
+                    "word_text": "имају"
+                }
+            ]
+        },
+        {
+            "line_id": "4",
+            "words": [
+                {
+                    "word_id": "1",
+                    "word_confidence": 96.3256,
+                    "word_text": "тенденцију"
+                },
+                {
+                    "word_id": "2",
+                    "word_confidence": 93.248543,
+                    "word_text": "да"
+                },
+                {
+                    "word_id": "3",
+                    "word_confidence": 92.034973,
+                    "word_text": "остраг"
+                },
+                {
+                    "word_id": "4",
+                    "word_confidence": 92.699257,
+                    "word_text": "струк"
+                },
+                {
+                    "word_id": "5",
+                    "word_confidence": 91.701317,
+                    "word_text": "подуже."
+                }
+            ]
+        },
+        {
+            "line_id": "5",
+            "words": [
+                {
+                    "word_id": "1",
+                    "word_confidence": 97.000084,
+                    "word_text": "Још"
+                },
+                {
+                    "word_id": "2",
+                    "word_confidence": 96.998497,
+                    "word_text": "је"
+                },
+                {
+                    "word_id": "3",
+                    "word_confidence": 93.304207,
+                    "word_text": "боље"
+                },
+                {
+                    "word_id": "4",
+                    "word_confidence": 91.964294,
+                    "word_text": "кројити"
+                },
+                {
+                    "word_id": "5",
+                    "word_confidence": 96.589882,
+                    "word_text": "леђа"
+                },
+                {
+                    "word_id": "6",
+                    "word_confidence": 93.279556,
+                    "word_text": "као"
+                },
+                {
+                    "word_id": "7",
+                    "word_confidence": 82.37896,
+                    "word_text": "бо-"
+                }
+            ]
+        },
+        {
+            "line_id": "6",
+            "words": [
+                {
+                    "word_id": "1",
+                    "word_confidence": 91.096779,
+                    "word_text": "леро"
+                },
+                {
+                    "word_id": "2",
+                    "word_confidence": 96.602654,
+                    "word_text": "са"
+                },
+                {
+                    "word_id": "3",
+                    "word_confidence": 93.301216,
+                    "word_text": "слободним"
+                },
+                {
+                    "word_id": "4",
+                    "word_confidence": 92.515694,
+                    "word_text": "дољним"
+                },
+                {
+                    "word_id": "5",
+                    "word_confidence": 96.257133,
+                    "word_text": "рубом."
+                }
+            ]
+        }
+    ],
+    "statistics": {
+        "avg_word_confidence": 94.01993723529414
+    }
+}

@@ -1,0 +1,3 @@
+{
+  "extends": "@shared/config/tsconfig/react/tsconfig.node.json"
+}
