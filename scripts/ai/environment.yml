@@ -278,6 +278,7 @@ dependencies:
   - pip:
       - einops==0.8.1
       - fsspec==2025.7.0
+      - litellm
       - pdf2image==1.17.0
       - ultralytics-thop==2.0.14
 prefix: /opt/anaconda3/envs/lorya

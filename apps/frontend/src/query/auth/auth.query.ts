@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { AuthQueryKeys } from './auth.keys'
 import { jwtDecode } from 'jwt-decode'
 import { storageUtils } from '../../utils'
-import { StorageKey } from '../../api'
+import { authEndpoints, StorageKey, type User } from '../../api'
 
 interface JwtPayload {
   exp?: number
@@ -28,3 +28,17 @@ export const useAuthenticated = () =>
       }
     },
   })
+
+export const useCurrentUser = () => {
+  const { data: isAuthenticated } = useAuthenticated()
+
+  return useQuery<User, Error>({
+    queryKey: AuthQueryKeys.currentUser,
+    queryFn: async () => {
+      const res = await authEndpoints.me()
+      return res.data as User
+    },
+    enabled: Boolean(isAuthenticated),
+    staleTime: 5 * 60_000,
+  })
+}

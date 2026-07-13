@@ -38,6 +38,7 @@ export type RunHistoryItemDto = {
   modelType: AiActivityModelType
   modelId: string
   modelName: string
+  modelKind?: 'BUILTIN' | 'HUGGINGFACE' | 'LITELLM' | null
   modelExecutionId: string | null
   modelUrl: string | null
   status: RunHistoryStatus

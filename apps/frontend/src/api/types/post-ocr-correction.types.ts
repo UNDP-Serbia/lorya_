@@ -1,5 +1,12 @@
 import type { OcrLine, OcrStatistics } from './ocr.types'
 
+export type PostOcrCorrectionProcessRequestDto = {
+  inputDir: string
+  fileName: string
+  modelRunId?: string
+  prompt?: string
+}
+
 export type PostOcrCorrectionStatistics = OcrStatistics & {
   cer: number
   wer: number
@@ -22,6 +29,7 @@ export type PostOcrCorrectionProcessingResultDto = {
 
 export type PostOcrCorrectionResultsResponseDto = {
   success: boolean
+  modelKind?: 'BUILTIN' | 'HUGGINGFACE' | 'LITELLM' | null
   data: PostOcrCorrectionSegmentData[]
 }
 

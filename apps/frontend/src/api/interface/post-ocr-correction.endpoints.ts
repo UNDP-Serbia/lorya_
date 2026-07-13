@@ -1,5 +1,6 @@
 import { restClient } from '../client'
 import type {
+  PostOcrCorrectionProcessRequestDto,
   PostOcrCorrectionProcessingResultDto,
   PostOcrCorrectionResultsResponseDto,
   RevertRequestDto,
@@ -12,7 +13,7 @@ const base = '/ai/models/post-ocr-corrections'
 export const postOcrCorrectionEndpoints = {
   process: async (
     slug: string,
-    body: { inputDir: string; fileName: string; modelRunId?: string }
+    body: PostOcrCorrectionProcessRequestDto
   ): Promise<PostOcrCorrectionProcessingResultDto> => {
     const res = await restClient.post<PostOcrCorrectionProcessingResultDto>(
       `${base}/${slug}/process`,

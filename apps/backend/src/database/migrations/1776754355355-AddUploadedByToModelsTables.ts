@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 
-export class AddUploadedByToModelsTables1776754355355
-  implements MigrationInterface
-{
+export class AddUploadedByToModelsTables1776754355355 implements MigrationInterface {
   name = 'AddUploadedByToModelsTables1776754355355'
 
   public async up(queryRunner: QueryRunner): Promise<void> {

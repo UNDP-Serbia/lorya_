@@ -362,7 +362,6 @@ export const RightDrawer: React.FC<RightDrawerProps> = ({
     <CustomDrawer collapsed={collapsed} width={width} anchor='right'>
       <UserBadge
         collapsed={collapsed}
-        name='Test User'
         onToggle={() => setCollapsed(!collapsed)}
       />
       <hr className='border-t-[0.5px] border-[#BCDDFF]' />

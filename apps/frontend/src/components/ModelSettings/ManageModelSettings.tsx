@@ -8,6 +8,7 @@ type IProps = {
   modelId: string
 }
 const OCR_LABEL = 'Optical Character Recognition'
+const POST_OCR_LABEL = 'Post-OCR Correction'
 
 export const ManageModelSettings: React.FC<IProps> = ({ modelId }) => {
   const navigate = useNavigate()
@@ -37,7 +38,10 @@ export const ManageModelSettings: React.FC<IProps> = ({ modelId }) => {
       <ModelSettingsForm
         modelId={editingId}
         category={category}
-        isOcrModel={decodedLabel === OCR_LABEL}
+        showTesseractSection={decodedLabel === OCR_LABEL}
+        showCustomLlmSection={
+          decodedLabel === OCR_LABEL || decodedLabel === POST_OCR_LABEL
+        }
       />
     </div>
   )

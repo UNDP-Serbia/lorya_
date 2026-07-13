@@ -4,6 +4,7 @@ import {
   ModalDialog,
   ApplyButton,
   FileUploadButton,
+  Tooltip,
 } from '@shared/ui'
 import { FormikProvider, useFormik } from 'formik'
 import { getModelSettingsSchema } from './form-validation'
@@ -16,6 +17,16 @@ import * as Yup from 'yup'
 import { useSearchParams } from 'react-router'
 import { useCreateModel, useUpdateModel, useModel } from '../../query/ai-models'
 import type { ModelCategory } from '../../utils/model-category'
+import HoverIcon from '../helpers/HoverIcon'
+import { getDefaultOutputFormatPrompt } from '../../utils/llm-output-format'
+
+const CUSTOM_LLM_CONFIG_EXAMPLE = `{
+  "model": "gpt-4o",
+  "apiKey": "sk-...",
+  "defaultPrompt": "Read the text in this image.",
+  "apiBase": "https://api.example.com",
+  "parameters": { "temperature": 0.2 }
+}`
 
 const FieldLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <span className='block bg-[#eaeaea] text-[#7B7B7B] px-1 absolute !z-10 text-[11px] top-[-8px] left-3.5'>
@@ -70,7 +81,8 @@ const SourceOptions = {
 type MMProps = {
   modelId?: string
   category: ModelCategory
-  isOcrModel?: boolean
+  showTesseractSection?: boolean
+  showCustomLlmSection?: boolean
 }
 
 type InitialValuesType = {
@@ -87,6 +99,8 @@ type InitialValuesType = {
   languageData: string
   tesseractLangCode: string
   tesseractConfig: File | null
+  customLlmConfig: File | null
+  outputFormatPrompt: string
 }
 
 const fileNameFromPath = (p: string | null | undefined) =>
@@ -95,8 +109,10 @@ const fileNameFromPath = (p: string | null | undefined) =>
 export const ModelSettingsForm: React.FC<MMProps> = ({
   modelId,
   category,
-  isOcrModel,
+  showTesseractSection = false,
+  showCustomLlmSection = false,
 }) => {
+  const hasExtraSections = showTesseractSection || showCustomLlmSection
   const [, setSearchParams] = useSearchParams()
   const [isLoading, setIsLoading] = React.useState(false)
   const [uploadProgress, setUploadProgress] = React.useState<number>(0)
@@ -104,13 +120,30 @@ export const ModelSettingsForm: React.FC<MMProps> = ({
 
   const isEditing = Boolean(modelId)
 
-  const [activeSection, setActiveSection] = React.useState<
-    'model' | 'tesseract'
-  >('model')
-
   const { data: existing } = useModel(category, isEditing ? modelId : undefined)
   const createMutation = useCreateModel(category)
   const updateMutation = useUpdateModel(category)
+
+  const isEditingLitellm = existing?.type === 'LITELLM'
+
+  const [activeSection, setActiveSection] = React.useState<
+    'model' | 'tesseract' | 'customLlm'
+  >('model')
+  const [isOutputFormatExpanded, setIsOutputFormatExpanded] =
+    React.useState(false)
+
+  React.useEffect(() => {
+    if (isEditingLitellm) {
+      setActiveSection('customLlm')
+    }
+  }, [isEditingLitellm])
+
+  const defaultOutputFormatPrompt = React.useMemo(
+    () => getDefaultOutputFormatPrompt(category),
+    [category]
+  )
+
+  const existingCustomLlmConfigName = fileNameFromPath(existing?.configFilePath)
 
   const formik = useFormik<InitialValuesType>({
     initialValues: {
@@ -127,10 +160,15 @@ export const ModelSettingsForm: React.FC<MMProps> = ({
       languageData: '',
       tesseractLangCode: '',
       tesseractConfig: null,
+      customLlmConfig: null,
+      outputFormatPrompt:
+        existing?.llmConfig?.outputFormatPrompt ??
+        getDefaultOutputFormatPrompt(category),
     },
     validate: values => {
       const schema = getModelSettingsSchema({
-        isOcrModel,
+        showTesseractSection,
+        showCustomLlmSection,
         activeSection,
         isEditing,
       })
@@ -157,7 +195,48 @@ export const ModelSettingsForm: React.FC<MMProps> = ({
     enableReinitialize: true,
 
     onSubmit: async values => {
-      if (isOcrModel && activeSection === 'tesseract') {
+      if (hasExtraSections && activeSection === 'tesseract') {
+        return
+      }
+
+      if (hasExtraSections && activeSection === 'customLlm') {
+        try {
+          const outputFormatPrompt = values.outputFormatPrompt.trim()
+          if (isEditing && modelId) {
+            await updateMutation.mutateAsync({
+              id: modelId,
+              input: {
+                name: values.name,
+                description: values.description || undefined,
+                outputFormatPrompt,
+                ...(values.customLlmConfig
+                  ? { configFile: values.customLlmConfig }
+                  : {}),
+              },
+            })
+          } else {
+            if (!values.customLlmConfig) return
+            await createMutation.mutateAsync({
+              name: values.name,
+              description: values.description || undefined,
+              isLlm: true,
+              outputFormatPrompt,
+              configFile: values.customLlmConfig,
+            })
+          }
+
+          setSearchParams(prev => {
+            const params = new URLSearchParams(prev)
+            params.delete('model_id')
+            return params
+          })
+        } catch (err) {
+          console.error('LLM model save failed', err)
+        }
+        return
+      }
+
+      if (isEditingLitellm) {
         return
       }
 
@@ -258,6 +337,21 @@ export const ModelSettingsForm: React.FC<MMProps> = ({
     existing?.outputMapperFilePath
   )
 
+  const hasCustomOutputFormat =
+    formik.values.outputFormatPrompt.trim() !== defaultOutputFormatPrompt.trim()
+
+  const defaultOutputFormatLabel =
+    category === 'post-ocr-correction'
+      ? 'Post-OCR JSON structure'
+      : 'OCR JSON structure'
+
+  const isCustomLlmSectionActive = activeSection === 'customLlm'
+
+  const handleResetOutputFormat = () => {
+    void formik.setFieldValue('outputFormatPrompt', defaultOutputFormatPrompt)
+    setIsOutputFormatExpanded(false)
+  }
+
   return (
     <FormikProvider value={formik}>
       <form
@@ -286,7 +380,7 @@ export const ModelSettingsForm: React.FC<MMProps> = ({
           <FormErrorMessage name='description' />
         </div>
 
-        {isOcrModel && (
+        {showTesseractSection && (
           <>
             <div className='flex items-center justify-start'>
               <button
@@ -390,7 +484,158 @@ export const ModelSettingsForm: React.FC<MMProps> = ({
           </>
         )}
 
-        {isOcrModel && (
+        {showCustomLlmSection && (
+          <>
+            <div className='flex items-center justify-start'>
+              <button
+                type='button'
+                onClick={() => setActiveSection('customLlm')}
+                className='mb-[-12px] !p-0'
+                aria-pressed={activeSection === 'customLlm'}
+                title='Activate Custom LLM Configuration'
+              >
+                {activeSection === 'customLlm' ? (
+                  <img
+                    src={checkRounded}
+                    alt='check'
+                    height={16}
+                    width={16}
+                    className='mb-[5px]'
+                  />
+                ) : (
+                  <span
+                    className={
+                      'inline-block w-4 h-4 border rounded-xl border-[#1976D2]'
+                    }
+                  />
+                )}
+              </button>
+            </div>
+
+            <div className='relative'>
+              <span className='flex items-center gap-1 bg-[#eaeaea] text-[#7B7B7B] px-1 absolute !z-10 text-[11px] top-[-8px] left-3.5'>
+                Custom LLM
+                <Tooltip
+                  title={
+                    <pre className='text-[11px] whitespace-pre m-0 font-mono'>
+                      {CUSTOM_LLM_CONFIG_EXAMPLE}
+                    </pre>
+                  }
+                  placement='top'
+                  arrow
+                  slotProps={{ tooltip: { sx: { maxWidth: 360 } } }}
+                >
+                  <span className='inline-flex cursor-help'>
+                    <HoverIcon
+                      name='eye-icon'
+                      width={14}
+                      alt='JSON config example'
+                    />
+                  </span>
+                </Tooltip>
+              </span>
+              <div
+                className={clsx(
+                  'rounded p-2 pt-3 outline-none border border-[rgba(123,123,123,0.3)]',
+                  activeSection !== 'customLlm' &&
+                    'opacity-60 pointer-events-none'
+                )}
+              >
+                <FileBadge
+                  label={
+                    formik.values.customLlmConfig?.name ||
+                    'Upload JSON config file'
+                  }
+                  accept='.json,application/json'
+                  onFileSelect={file =>
+                    handleFieldChange('customLlmConfig', file)
+                  }
+                  error={
+                    formik.errors.customLlmConfig && formik.submitCount > 0
+                      ? String(formik.errors.customLlmConfig)
+                      : undefined
+                  }
+                  value={formik.values.customLlmConfig}
+                />
+                {isEditing &&
+                  existingCustomLlmConfigName &&
+                  !formik.values.customLlmConfig && (
+                    <span className='text-[10px] text-[#7B7B7B] mt-1'>
+                      Current: {existingCustomLlmConfigName}
+                    </span>
+                  )}
+                <div className='mt-3 text-left'>
+                  <span className='block text-[11px] text-[#7B7B7B] mb-1'>
+                    Output format
+                  </span>
+                  {isOutputFormatExpanded ? (
+                    <>
+                      <p className='text-[10px] text-amber-700 mb-2'>
+                        Editing these instructions may cause OCR or Post-OCR
+                        processing to fail if the model response no longer
+                        matches the required JSON structure.
+                      </p>
+                      <textarea
+                        className='w-full bg-[#eaeaea] text-[12px] text-[#292929] rounded p-2 outline-none min-h-[120px] border border-[rgba(123,123,123,0.3)]'
+                        value={formik.values.outputFormatPrompt}
+                        disabled={!isCustomLlmSectionActive}
+                        onChange={e =>
+                          handleFieldChange(
+                            'outputFormatPrompt',
+                            e.target.value
+                          )
+                        }
+                      />
+                      <FormErrorMessage
+                        name='outputFormatPrompt'
+                        className='mt-1'
+                      />
+                      <div className='flex items-center justify-between mt-2'>
+                        <button
+                          type='button'
+                          className='text-[11px] text-[#2A5DB0] underline hover:text-[#163A7A] disabled:opacity-50 disabled:pointer-events-none'
+                          disabled={!isCustomLlmSectionActive}
+                          onClick={handleResetOutputFormat}
+                        >
+                          Reset to default
+                        </button>
+                        <button
+                          type='button'
+                          className='text-[11px] text-[#7B7B7B] underline hover:text-[#292929] disabled:opacity-50 disabled:pointer-events-none'
+                          disabled={!isCustomLlmSectionActive}
+                          onClick={() => setIsOutputFormatExpanded(false)}
+                        >
+                          Hide
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className='text-[11px] text-[#292929] mb-1'>
+                        Using default ({defaultOutputFormatLabel})
+                        {hasCustomOutputFormat && (
+                          <span className='ml-2 text-[10px] text-amber-700'>
+                            Custom format active
+                          </span>
+                        )}
+                      </p>
+                      <button
+                        type='button'
+                        className='text-[11px] text-[#2A5DB0] underline hover:text-[#163A7A] disabled:opacity-50 disabled:pointer-events-none !pl-0'
+                        disabled={!isCustomLlmSectionActive}
+                        onClick={() => setIsOutputFormatExpanded(true)}
+                      >
+                        Advanced: Customize output format
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {hasExtraSections && !isEditingLitellm && (
           <div className='flex items-center justify-start'>
             <button
               type='button'
@@ -424,9 +669,10 @@ export const ModelSettingsForm: React.FC<MMProps> = ({
           <div
             className={clsx(
               'rounded p-2 pt-3 outline-none border border-[rgba(123,123,123,0.3)]',
-              isOcrModel &&
+              hasExtraSections &&
                 activeSection !== 'model' &&
-                'opacity-60 pointer-events-none'
+                'opacity-60 pointer-events-none',
+              isEditingLitellm && 'opacity-60 pointer-events-none'
             )}
           >
             <div className='flex flex-col gap-2'>

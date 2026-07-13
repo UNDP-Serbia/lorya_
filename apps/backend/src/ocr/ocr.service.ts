@@ -6,10 +6,11 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common'
+import { readFile } from 'fs/promises'
 import * as path from 'path'
 import { DataSource } from 'typeorm'
 import { PathService } from 'src/common/services'
-import { runInTransaction } from 'src/common/helpers'
+import { resolveModelKindFromRun, runInTransaction } from 'src/common/helpers'
 import { DirectoryService } from 'src/directory/directory.service'
 import { FileService } from 'src/file/file.service'
 import { FileEntity } from 'src/file/file.entity'
@@ -33,6 +34,7 @@ import {
 import { OcrResultRepository } from './ocr-result.repository'
 import { OcrModelRepository } from './ocr-model.repository'
 import { OcrModelType } from './types/ocr-model-type.enum'
+import { LlmRunnerService } from 'src/llm/llm-runner.service'
 
 @Injectable()
 export class OcrService {
@@ -42,6 +44,9 @@ export class OcrService {
     @Inject('SCRIPT_DIR') private readonly scriptDir: string,
     @Inject('ROOT_PATH_SERVICE') private readonly pathService: PathService,
     @Inject('SEGMENTS_PATH') private readonly segmentsPath: string,
+    @Inject('MODEL_FILES_PATH_SERVICE')
+    private readonly modelFilesPath: PathService,
+    private readonly llmRunner: LlmRunnerService,
     @Inject('CONDA_ENV') private readonly condaEnv: string,
     private readonly aiService: AiService,
     private readonly directoryService: DirectoryService,
@@ -55,9 +60,16 @@ export class OcrService {
 
   async getOcrResultsByFileId(fileId: string): Promise<OcrResultsResponseDto> {
     const results = await this.ocrResultRepository.findByFileId(fileId)
+    const modelRunId = results.find(r => r.modelRunId)?.modelRunId ?? null
+    const modelKind = await resolveModelKindFromRun(
+      this.dataSource,
+      this.ocrModelRepository,
+      modelRunId
+    )
 
     return {
       success: true,
+      modelKind,
       data: results.map(r => ({
         segmentId: r.segmentId,
         segmentFile: path.basename(r.segment.modifiedPath),
@@ -123,6 +135,9 @@ export class OcrService {
     if (!model.reference) {
       throw new ForbiddenException('Model is not executable.')
     }
+    if (model.type === OcrModelType.LITELLM && !model.configFilePath) {
+      throw new BadRequestException('LLM model is missing its config file.')
+    }
 
     const { inputDir, fileName } = data
 
@@ -171,36 +186,60 @@ export class OcrService {
         )
 
         try {
-          const result = (await this.aiService.runScript(
-            'python',
-            [scriptPath, segment.id, segmentFilePath],
-            {
-              env: {
-                ...process.env,
-                PATH: `${this.condaEnv}/bin:${process.env.PATH ?? ''}`,
-                TESSDATA_PREFIX: `${this.condaEnv}/share/tessdata`,
-              },
-            }
-          )) as string
+          let lang: string
+          let script: string
+          let lines: OcrDataDto['lines']
+          let statistics: { avg_word_confidence: number | null }
 
-          const parsed = JSON.parse(result.trim()) as {
-            status?: { success?: boolean; messageText?: string }
-          } & OcrDataDto
-          const status = parsed?.status
-          if (!status?.success) {
-            throw new BadRequestException(
-              status?.messageText ||
-                `Failed to process segment ${segmentFileName}.`
-            )
+          if (model.type === OcrModelType.LITELLM) {
+            const imageBase64 = await readFile(segmentFilePath, 'base64')
+            const llm = await this.llmRunner.run({
+              task: 'ocr',
+              configPath: this.modelFilesPath.getAbsolutePath(
+                model.configFilePath!
+              ),
+              prompt: data.prompt,
+              parameters: data.parameters,
+              image: imageBase64,
+            })
+            lang = llm.lang ?? 'und'
+            script = llm.script ?? ''
+            lines = llm.lines ?? []
+            statistics = llm.statistics ?? { avg_word_confidence: null }
+          } else {
+            const result = (await this.aiService.runScript(
+              'python',
+              [scriptPath, segment.id, segmentFilePath],
+              {
+                env: {
+                  ...process.env,
+                  PATH: `${this.condaEnv}/bin:${process.env.PATH ?? ''}`,
+                  TESSDATA_PREFIX: `${this.condaEnv}/share/tessdata`,
+                },
+              }
+            )) as string
+            const parsed = JSON.parse(result.trim()) as {
+              status?: { success?: boolean; messageText?: string }
+            } & OcrDataDto
+            if (!parsed?.status?.success) {
+              throw new BadRequestException(
+                parsed?.status?.messageText ||
+                  `Failed to process segment ${segmentFileName}.`
+              )
+            }
+            lang = parsed.lang
+            script = parsed.script
+            lines = parsed.lines
+            statistics = parsed.statistics
           }
 
           segmentResults.push({
             segmentId: segment.id,
             segmentFile: segmentFileName,
-            lang: parsed.lang,
-            script: parsed.script,
-            lines: parsed.lines,
-            statistics: parsed.statistics,
+            lang,
+            script,
+            lines,
+            statistics,
           })
         } catch (err) {
           if (err instanceof BadRequestException) throw err

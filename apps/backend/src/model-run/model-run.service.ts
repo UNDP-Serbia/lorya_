@@ -252,8 +252,8 @@ export class ModelRunService {
       activitiesByRun.set(a.modelRunId, list)
     }
 
-    // Resolve modelName once per (modelType, modelId)
-    const nameByKey = await this.resolveModelNames(runs)
+    // Resolve modelName and modelKind once per (modelType, modelId)
+    const { nameByKey, kindByKey } = await this.resolveModelMeta(runs)
 
     // Compute file confidence + status + hasSegments per activity (batch)
     const enrichedActivitiesByRun = await this.enrichActivitiesByRun(
@@ -263,8 +263,10 @@ export class ModelRunService {
 
     const enrichedRuns = runs.map(run => {
       const runActivities = enrichedActivitiesByRun.get(run.id) ?? []
+      const metaKey = `${run.modelType}:${run.modelId}`
       return Object.assign(run, {
-        modelName: nameByKey.get(`${run.modelType}:${run.modelId}`) ?? '',
+        modelName: nameByKey.get(metaKey) ?? '',
+        modelKind: kindByKey.get(metaKey) ?? null,
         activities: runActivities,
       })
     })
@@ -438,23 +440,31 @@ export class ModelRunService {
     })
   }
 
-  private async resolveModelNames(
-    runs: ModelRunEntity[]
-  ): Promise<Map<string, string>> {
+  private async resolveModelMeta(runs: ModelRunEntity[]): Promise<{
+    nameByKey: Map<string, string>
+    kindByKey: Map<string, string>
+  }> {
     const byType = new Map<AiActivityModelType, Set<string>>()
     for (const run of runs) {
       if (!byType.has(run.modelType)) byType.set(run.modelType, new Set())
       byType.get(run.modelType)!.add(run.modelId)
     }
-    const result = new Map<string, string>()
+    const nameByKey = new Map<string, string>()
+    const kindByKey = new Map<string, string>()
     for (const [type, ids] of byType) {
       const repo = this.modelRepoFor(type)
       const found = await repo.findByIds([...ids])
-      for (const m of found as Array<{ id: string; name: string }>) {
-        result.set(`${type}:${m.id}`, m.name)
+      for (const m of found as Array<{
+        id: string
+        name: string
+        type: string
+      }>) {
+        const key = `${type}:${m.id}`
+        nameByKey.set(key, m.name)
+        kindByKey.set(key, m.type)
       }
     }
-    return result
+    return { nameByKey, kindByKey }
   }
 
   private async enrichActivitiesByRun(

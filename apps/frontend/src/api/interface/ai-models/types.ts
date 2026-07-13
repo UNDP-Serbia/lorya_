@@ -1,4 +1,12 @@
-export type ModelType = 'BUILTIN' | 'HUGGINGFACE'
+export type ModelType = 'BUILTIN' | 'HUGGINGFACE' | 'LITELLM'
+
+export interface LlmConfig {
+  model: string
+  defaultPrompt: string
+  outputFormatPrompt?: string
+  apiBase?: string
+  parameters?: Record<string, unknown>
+}
 
 export interface UploaderAccount {
   id: string
@@ -20,21 +28,25 @@ export interface AiModel {
   uploadedBy: UploaderAccount | null
   createdAt: string
   updatedAt: string
+  llmConfig?: LlmConfig
 }
 
 export interface CreateModelInput {
   name: string
   description?: string
-  huggingfaceId: string
-  configFile: File
-  inputMapperFile: File
-  outputMapperFile: File
+  isLlm?: boolean
+  huggingfaceId?: string
+  outputFormatPrompt?: string
+  configFile?: File
+  inputMapperFile?: File
+  outputMapperFile?: File
 }
 
 export type UpdateModelInput = Partial<{
   name: string
   description: string
   huggingfaceId: string
+  outputFormatPrompt: string
   configFile: File
   inputMapperFile: File
   outputMapperFile: File
@@ -47,8 +59,11 @@ export function toFormData(
   if ('name' in input && input.name !== undefined) fd.append('name', input.name)
   if ('description' in input && input.description !== undefined)
     fd.append('description', input.description)
+  if ('isLlm' in input && input.isLlm === true) fd.append('isLlm', 'true')
   if ('huggingfaceId' in input && input.huggingfaceId !== undefined)
     fd.append('huggingfaceId', input.huggingfaceId)
+  if ('outputFormatPrompt' in input && input.outputFormatPrompt !== undefined)
+    fd.append('outputFormatPrompt', input.outputFormatPrompt)
   if (input.configFile) fd.append('configFile', input.configFile)
   if (input.inputMapperFile) fd.append('inputMapperFile', input.inputMapperFile)
   if (input.outputMapperFile)

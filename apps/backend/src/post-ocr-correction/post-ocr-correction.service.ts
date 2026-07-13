@@ -9,6 +9,9 @@ import {
 import * as path from 'path'
 import { DataSource } from 'typeorm'
 import { runInTransaction } from 'src/common/helpers'
+import { resolveModelKindFromRun } from 'src/common/helpers/resolve-model-kind-from-run'
+import { PathService } from 'src/common/services'
+import { LlmRunnerService } from 'src/llm/llm-runner.service'
 import { DirectoryService } from 'src/directory/directory.service'
 import { FileService } from 'src/file/file.service'
 import { FileEntity } from 'src/file/file.entity'
@@ -40,6 +43,9 @@ export class PostOcrCorrectionService {
   constructor(
     @Inject('SCRIPT_DIR') private readonly scriptDir: string,
     @Inject('CONDA_ENV') private readonly condaEnv: string,
+    @Inject('MODEL_FILES_PATH_SERVICE')
+    private readonly modelFilesPath: PathService,
+    private readonly llmRunner: LlmRunnerService,
     private readonly aiService: AiService,
     private readonly directoryService: DirectoryService,
     private readonly fileService: FileService,
@@ -56,9 +62,16 @@ export class PostOcrCorrectionService {
   ): Promise<PostOcrCorrectionResultsResponseDto> {
     const results =
       await this.postOcrCorrectionResultRepository.findByFileId(fileId)
+    const modelRunId = results.find(r => r.modelRunId)?.modelRunId ?? null
+    const modelKind = await resolveModelKindFromRun(
+      this.dataSource,
+      this.modelRepository,
+      modelRunId
+    )
 
     return {
       success: true,
+      modelKind,
       data: results.map(r => ({
         segmentId: r.segmentId,
         segmentFile: path.basename(r.segment.modifiedPath),
@@ -120,6 +133,12 @@ export class PostOcrCorrectionService {
     if (!model.reference) {
       throw new ForbiddenException('Model is not executable.')
     }
+    if (
+      model.type === PostOcrCorrectionModelType.LITELLM &&
+      !model.configFilePath
+    ) {
+      throw new BadRequestException('LLM model is missing its config file.')
+    }
 
     const { inputDir, fileName } = data
 
@@ -170,46 +189,72 @@ export class PostOcrCorrectionService {
           })),
         }))
 
-        const inputJson = JSON.stringify({
-          id: ocrSegment.segmentId,
-          lines: linesForScript,
-        })
-
         try {
-          const result = (await this.aiService.runScript(
-            'python',
-            [scriptPath, inputJson],
-            {
-              env: {
-                ...process.env,
-                PATH: `${this.condaEnv}/bin:${process.env.PATH ?? ''}`,
-              },
-            }
-          )) as string
-
-          const parsed = JSON.parse(result.trim()) as {
-            id: string
-            status?: { success?: boolean; messageText?: string }
+          let parsed: {
             lines: typeof ocrSegment.lines
             statistics: {
-              cer: number
-              wer: number
-              avg_word_confidence: number
+              cer: number | null
+              wer: number | null
+              avg_word_confidence: number | null
             }
           }
 
-          const status = parsed?.status
-          if (!status?.success) {
-            throw new BadRequestException(
-              status?.messageText ||
-                `Failed to process segment ${ocrSegment.segmentId}.`
-            )
+          if (model.type === PostOcrCorrectionModelType.LITELLM) {
+            const llm = await this.llmRunner.run({
+              task: 'post_ocr',
+              configPath: this.modelFilesPath.getAbsolutePath(
+                model.configFilePath!
+              ),
+              prompt: data.prompt,
+              parameters: data.parameters,
+              ocr: { lines: linesForScript },
+            })
+            parsed = {
+              lines: (llm.lines ?? []) as typeof ocrSegment.lines,
+              statistics: {
+                avg_word_confidence:
+                  llm.statistics?.avg_word_confidence ?? null,
+                cer: llm.statistics?.cer ?? null,
+                wer: llm.statistics?.wer ?? null,
+              },
+            }
+          } else {
+            const inputJson = JSON.stringify({
+              id: ocrSegment.segmentId,
+              lines: linesForScript,
+            })
+            const result = (await this.aiService.runScript(
+              'python',
+              [scriptPath, inputJson],
+              {
+                env: {
+                  ...process.env,
+                  PATH: `${this.condaEnv}/bin:${process.env.PATH ?? ''}`,
+                },
+              }
+            )) as string
+            const raw = JSON.parse(result.trim()) as {
+              status?: { success?: boolean; messageText?: string }
+              lines: typeof ocrSegment.lines
+              statistics: {
+                cer: number
+                wer: number
+                avg_word_confidence: number
+              }
+            }
+            if (!raw?.status?.success) {
+              throw new BadRequestException(
+                raw?.status?.messageText ||
+                  `Failed to process segment ${ocrSegment.segmentId}.`
+              )
+            }
+            parsed = raw
           }
 
-          // Strip edited_word_text from script output so Post-OCR results start clean
+          // Strip edited_word_text so Post-OCR results start clean
           const cleanLines = parsed.lines.map(line => ({
             ...line,
-            words: line.words.map(({ edited_word_text: _, ...w }) => w),
+            words: line.words.map(({ edited_word_text: _edited, ...w }) => w),
           }))
 
           segmentResults.push({

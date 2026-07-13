@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 
-export class SeedPostOcrCorrectionModels1776700706375
-  implements MigrationInterface
-{
+export class SeedPostOcrCorrectionModels1776700706375 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       INSERT INTO "post_ocr_correction_models" ("id", "name", "type", "reference")

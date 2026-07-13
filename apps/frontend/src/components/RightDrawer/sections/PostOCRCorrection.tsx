@@ -16,10 +16,17 @@ import {
   type BatchProcessingFile,
   type BatchFileStatus,
 } from '../modals/BatchProcessingModal'
+import { CustomLlmPromptModal } from '../modals/CustomLlmPromptModal'
 import toast from 'react-hot-toast'
 import { getErrorMessage } from '../../../helpers'
 import { useQueryClient } from '@tanstack/react-query'
 import { FileManagerQueryKeys } from '../../../query/file-manager/file-manager.keys'
+import { useModels } from '../../../query/ai-models'
+import {
+  getLitellmDefaultPrompt,
+  isLitellmModel,
+  settingsModelToEditorModel,
+} from '../../../utils/llm-model'
 
 type PostOCRCorrectionProps = {
   models: AiModel[]
@@ -31,6 +38,12 @@ type PostOCRCorrectionProps = {
   fileStatus?: string | null
 }
 
+type PendingCustomLlmRun = {
+  model: AiModel
+  idx: number
+  mode: 'single' | 'batch'
+}
+
 export const PostOCRCorrection: React.FC<PostOCRCorrectionProps> = ({
   models,
   selectedImagePath,
@@ -39,10 +52,28 @@ export const PostOCRCorrection: React.FC<PostOCRCorrectionProps> = ({
   onUndo,
   isUndoing,
 }) => {
+  const { data: listModels } = useModels('post-ocr-correction')
+  const displayModels = React.useMemo(() => {
+    if (listModels?.length) {
+      return listModels.map(settingsModelToEditorModel)
+    }
+    return models
+  }, [listModels, models])
+
   const [selectedModel, setSelectedModel] = React.useState<number>(0)
   const [methodStatuses, setMethodStatuses] = React.useState<MethodStatus[]>(
-    () => models.map(() => 'idle')
+    () => displayModels.map(() => 'idle')
   )
+
+  React.useEffect(() => {
+    setMethodStatuses(prev =>
+      displayModels.map((_, i) => prev[i] ?? ('idle' as MethodStatus))
+    )
+  }, [displayModels])
+  const [customLlmRun, setCustomLlmRun] =
+    React.useState<PendingCustomLlmRun | null>(null)
+  const [isCustomLlmBatchRunning, setIsCustomLlmBatchRunning] =
+    React.useState(false)
 
   const { mutate: processPostOcr } = usePostOcrCorrectionProcess()
 
@@ -57,7 +88,7 @@ export const PostOCRCorrection: React.FC<PostOCRCorrectionProps> = ({
   const [batchFiles, setBatchFiles] = React.useState<BatchProcessingFile[]>([])
 
   const handleBatchRun = React.useCallback(
-    async (modelSlug: string) => {
+    async (modelSlug: string, prompt?: string) => {
       const fileIds = selectedFiles.map(f => f.fileId)
       try {
         const result = await validateBatch({ fileIds })
@@ -96,6 +127,7 @@ export const PostOCRCorrection: React.FC<PostOCRCorrectionProps> = ({
             inputDir: file.path,
             fileName: file.fileName,
             modelRunId: modelRunId ?? undefined,
+            ...(prompt ? { prompt } : {}),
           })
           setBatchFiles(prev =>
             prev.map(f =>
@@ -134,6 +166,120 @@ export const PostOCRCorrection: React.FC<PostOCRCorrectionProps> = ({
     [selectedFiles, validateBatch, queryClient, startRun, completeRun]
   )
 
+  const runSingle = React.useCallback(
+    (model: AiModel, idx: number, prompt?: string) => {
+      if (!selectedImagePath || !selectedImageFileName) return
+
+      const inputDir = selectedImagePath
+      const fileName = selectedImageFileName
+
+      setMethodStatuses(prev => prev.map((s, i) => (i === idx ? 'running' : s)))
+
+      void (async () => {
+        let modelRunId: string | null = null
+        try {
+          const startResult = await startRun({
+            modelType: AiActivityModelType.POST_OCR_CORRECTION,
+            modelId: model.id,
+            selectionCount: 1,
+          })
+          modelRunId = startResult.id
+        } catch (err) {
+          toast.error(getErrorMessage(err))
+          setMethodStatuses(prev =>
+            prev.map((s, i) => (i === idx ? 'failed' : s))
+          )
+          return
+        }
+
+        const finalize = () => {
+          if (!modelRunId) return
+          completeRun(modelRunId).catch(err => {
+            toast.error(
+              `Couldn't finalize run history: ${getErrorMessage(err)}`
+            )
+          })
+        }
+
+        processPostOcr(
+          {
+            slug: model.id,
+            inputDir,
+            fileName,
+            modelRunId: modelRunId ?? undefined,
+            ...(prompt ? { prompt } : {}),
+          },
+          {
+            onSuccess: result => {
+              setMethodStatuses(prev =>
+                prev.map((s, i) => (i === idx ? 'done' : s))
+              )
+              onPostOcrComplete?.(result)
+              finalize()
+            },
+            onError: err => {
+              toast.error(getErrorMessage(err))
+              setMethodStatuses(prev =>
+                prev.map((s, i) => (i === idx ? 'failed' : s))
+              )
+              finalize()
+            },
+          }
+        )
+      })()
+    },
+    [
+      selectedImagePath,
+      selectedImageFileName,
+      startRun,
+      completeRun,
+      processPostOcr,
+      onPostOcrComplete,
+    ]
+  )
+
+  const handleRun = React.useCallback(
+    (model: AiModel, idx: number) => {
+      if (isLitellmModel(model.type)) {
+        setCustomLlmRun({
+          model,
+          idx,
+          mode: isBatchMode ? 'batch' : 'single',
+        })
+        return
+      }
+
+      if (isBatchMode) {
+        void handleBatchRun(model.id)
+        return
+      }
+
+      runSingle(model, idx)
+    },
+    [isBatchMode, handleBatchRun, runSingle]
+  )
+
+  const handleCustomLlmConfirm = React.useCallback(
+    (prompt: string) => {
+      if (!customLlmRun) return
+
+      const { model, idx, mode } = customLlmRun
+
+      if (mode === 'batch') {
+        setIsCustomLlmBatchRunning(true)
+        void handleBatchRun(model.id, prompt).finally(() => {
+          setIsCustomLlmBatchRunning(false)
+          setCustomLlmRun(null)
+        })
+        return
+      }
+
+      setCustomLlmRun(null)
+      runSingle(model, idx, prompt)
+    },
+    [customLlmRun, handleBatchRun, runSingle]
+  )
+
   return (
     <div className='flex flex-col gap-3 text-[12px] text-[#292929]'>
       <div>
@@ -141,7 +287,7 @@ export const PostOCRCorrection: React.FC<PostOCRCorrectionProps> = ({
           Select Post-OCR Correction Model
         </div>
         <div className='flex flex-col gap-1'>
-          {models.map((model, idx) => (
+          {displayModels.map((model, idx) => (
             <MethodSelectItem
               key={model.id}
               label={model.name}
@@ -151,72 +297,7 @@ export const PostOCRCorrection: React.FC<PostOCRCorrectionProps> = ({
                 isBatchMode ? !model.path : !model.path || !selectedImagePath
               }
               onClick={() => setSelectedModel(idx)}
-              onRun={() => {
-                if (isBatchMode) {
-                  void handleBatchRun(model.id)
-                  return
-                }
-
-                if (!selectedImagePath || !selectedImageFileName) return
-
-                const inputDir = selectedImagePath
-                const fileName = selectedImageFileName
-
-                setMethodStatuses(prev =>
-                  prev.map((s, i) => (i === idx ? 'running' : s))
-                )
-
-                void (async () => {
-                  let modelRunId: string | null = null
-                  try {
-                    const startResult = await startRun({
-                      modelType: AiActivityModelType.POST_OCR_CORRECTION,
-                      modelId: model.id,
-                      selectionCount: 1,
-                    })
-                    modelRunId = startResult.id
-                  } catch (err) {
-                    toast.error(getErrorMessage(err))
-                    setMethodStatuses(prev =>
-                      prev.map((s, i) => (i === idx ? 'failed' : s))
-                    )
-                    return
-                  }
-
-                  const finalize = () => {
-                    if (!modelRunId) return
-                    completeRun(modelRunId).catch(err => {
-                      toast.error(
-                        `Couldn't finalize run history: ${getErrorMessage(err)}`
-                      )
-                    })
-                  }
-
-                  processPostOcr(
-                    {
-                      slug: model.id,
-                      inputDir,
-                      fileName,
-                      modelRunId: modelRunId ?? undefined,
-                    },
-                    {
-                      onSuccess: result => {
-                        setMethodStatuses(prev =>
-                          prev.map((s, i) => (i === idx ? 'done' : s))
-                        )
-                        onPostOcrComplete?.(result)
-                        finalize()
-                      },
-                      onError: () => {
-                        setMethodStatuses(prev =>
-                          prev.map((s, i) => (i === idx ? 'failed' : s))
-                        )
-                        finalize()
-                      },
-                    }
-                  )
-                })()
-              }}
+              onRun={() => handleRun(model, idx)}
             />
           ))}
         </div>
@@ -238,6 +319,23 @@ export const PostOCRCorrection: React.FC<PostOCRCorrectionProps> = ({
           }}
         />
       </div>
+
+      <CustomLlmPromptModal
+        open={customLlmRun !== null}
+        modelName={customLlmRun?.model.name ?? ''}
+        initialPrompt={
+          customLlmRun
+            ? getLitellmDefaultPrompt(customLlmRun.model.llmConfig)
+            : ''
+        }
+        isRunning={isCustomLlmBatchRunning}
+        onCancel={() => {
+          if (!isCustomLlmBatchRunning) {
+            setCustomLlmRun(null)
+          }
+        }}
+        onRun={handleCustomLlmConfirm}
+      />
 
       <BatchProcessingModal
         open={batchModalOpen}

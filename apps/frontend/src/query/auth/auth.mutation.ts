@@ -29,6 +29,10 @@ export const useSignIn = (
         queryKey: AuthQueryKeys.authenticated,
         refetchType: 'all',
       })
+      await queryClient.invalidateQueries({
+        queryKey: AuthQueryKeys.currentUser,
+        refetchType: 'all',
+      })
       return { accessToken, refreshToken }
     },
     ...options,

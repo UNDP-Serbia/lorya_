@@ -1,6 +1,7 @@
 import React from 'react'
 import { Tooltip } from '@shared/ui'
 import HoverIcon from '../helpers/HoverIcon'
+import { useCurrentUser } from '../../query'
 
 const getInitials = (name: string): string => {
   if (!name) return ''
@@ -17,18 +18,18 @@ const getInitials = (name: string): string => {
 
 export type UserBadgeProps = {
   collapsed?: boolean
-  name: string
   onToggle?: () => void
   className?: string
 }
 
 export const UserBadge: React.FC<UserBadgeProps> = ({
   collapsed = false,
-  name,
   onToggle,
   className = '',
 }) => {
-  const initials = getInitials(name)
+  const { data: user } = useCurrentUser()
+  const displayName = user?.fullName || user?.email || ''
+  const initials = getInitials(displayName)
 
   const logout = () => {
     localStorage.removeItem('lryToken')
@@ -48,9 +49,9 @@ export const UserBadge: React.FC<UserBadgeProps> = ({
           {initials}
         </div>
 
-        {!collapsed && (
+        {!collapsed && displayName && (
           <div className='text-sm font-semibold pl-2 text-[#292929]'>
-            {name}
+            {displayName}
           </div>
         )}
       </div>

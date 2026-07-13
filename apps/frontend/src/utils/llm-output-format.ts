@@ -1,0 +1,19 @@
+import type { ModelCategory } from './model-category'
+
+export const DEFAULT_OCR_OUTPUT_FORMAT_PROMPT = `Return a single JSON object with these fields:
+- lang: detected language code (e.g. "srp", "eng")
+- script: script name (e.g. "cyrillic", "latin")
+- lines: array of { line_id, words: [{ word_id, word_text }] }
+
+Use numeric line_id and word_id starting from 1. Do not wrap the JSON in markdown.`
+
+export const DEFAULT_POST_OCR_OUTPUT_FORMAT_PROMPT = `Return a single JSON object with the same structure as the input OCR JSON:
+- lang, script, lines (array of { line_id, words: [{ word_id, word_text }] })
+
+Preserve line_id and word_id from the input where possible. Return only the corrected text in word_text. Do not wrap the JSON in markdown.`
+
+export function getDefaultOutputFormatPrompt(category: ModelCategory): string {
+  return category === 'post-ocr-correction'
+    ? DEFAULT_POST_OCR_OUTPUT_FORMAT_PROMPT
+    : DEFAULT_OCR_OUTPUT_FORMAT_PROMPT
+}

@@ -1,4 +1,5 @@
 import { forwardRef, Module } from '@nestjs/common'
+import { ModelRunEntity } from 'src/model-run/model-run.entity'
 import { PostOcrCorrectionController } from './post-ocr-correction.controller'
 import { PostOcrCorrectionService } from './post-ocr-correction.service'
 import { PostOcrCorrectionResultRepository } from './post-ocr-correction-result.repository'
@@ -14,12 +15,14 @@ import { OcrModule } from 'src/ocr/ocr.module'
 import { SegmentManagementModule } from 'src/segment-management/segment-management.module'
 import { DatabaseModule } from 'src/database/database.module'
 import { ActivityModule } from 'src/activity/activity.module'
+import { LlmModule } from 'src/llm/llm.module'
 
 @Module({
   imports: [
     DatabaseModule.forFeature([
       PostOcrCorrectionResultEntity,
       PostOcrCorrectionModelEntity,
+      ModelRunEntity,
     ]),
     CommonModule,
     forwardRef(() => AiModule),
@@ -27,6 +30,7 @@ import { ActivityModule } from 'src/activity/activity.module'
     FileModule,
     OcrModule,
     SegmentManagementModule,
+    LlmModule,
     forwardRef(() => ActivityModule),
   ],
   controllers: [PostOcrCorrectionController],

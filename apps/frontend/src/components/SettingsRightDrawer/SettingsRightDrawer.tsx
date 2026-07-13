@@ -27,11 +27,7 @@ export const SettingsRightDrawer: React.FC<SettingsRightDrawerProps> = ({
 
   return (
     <CustomDrawer anchor='right' collapsed={isCollapsed} width={width}>
-      <UserBadge
-        collapsed={internalCollapsed}
-        name='Test User'
-        onToggle={handleToggle}
-      />
+      <UserBadge collapsed={internalCollapsed} onToggle={handleToggle} />
 
       <hr className='border-t-[0.5px] border-[#BCDDFF]' />
 

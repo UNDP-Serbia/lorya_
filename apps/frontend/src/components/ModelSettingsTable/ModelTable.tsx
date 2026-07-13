@@ -14,7 +14,7 @@ type Row = {
   modelId: string
   modelName: string
   modelDescription: string
-  type: 'BUILTIN' | 'HUGGINGFACE'
+  type: 'BUILTIN' | 'HUGGINGFACE' | 'LITELLM'
   uploadedBy: string
   lastUpdated: string
 }
@@ -119,7 +119,11 @@ export const ModelTable: React.FC = () => {
         minWidth: 120,
         cellClassName: 'no-separator',
         renderCell: (params: GridRenderCellParams<Row>) => {
-          if (params.row.type !== 'HUGGINGFACE') return null
+          if (
+            params.row.type !== 'HUGGINGFACE' &&
+            params.row.type !== 'LITELLM'
+          )
+            return null
           return (
             <div className='flex items-center gap-1.5 justify-center'>
               <IconButton

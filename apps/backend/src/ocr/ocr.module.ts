@@ -1,4 +1,5 @@
 import { forwardRef, Module } from '@nestjs/common'
+import { ModelRunEntity } from 'src/model-run/model-run.entity'
 import { OcrController } from './ocr.controller'
 import { OcrService } from './ocr.service'
 import { OcrResultRepository } from './ocr-result.repository'
@@ -13,15 +14,21 @@ import { FileModule } from 'src/file/file.module'
 import { SegmentManagementModule } from 'src/segment-management/segment-management.module'
 import { DatabaseModule } from 'src/database/database.module'
 import { ActivityModule } from 'src/activity/activity.module'
+import { LlmModule } from 'src/llm/llm.module'
 
 @Module({
   imports: [
-    DatabaseModule.forFeature([OcrResultEntity, OcrModelEntity]),
+    DatabaseModule.forFeature([
+      OcrResultEntity,
+      OcrModelEntity,
+      ModelRunEntity,
+    ]),
     CommonModule,
     forwardRef(() => AiModule),
     DirectoryModule,
     FileModule,
     SegmentManagementModule,
+    LlmModule,
     forwardRef(() => ActivityModule),
   ],
   controllers: [OcrController],

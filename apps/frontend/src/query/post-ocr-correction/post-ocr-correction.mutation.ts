@@ -2,6 +2,7 @@ import { useMutation, type UseMutationOptions } from '@tanstack/react-query'
 import { PostOcrCorrectionMutationKeys } from './post-ocr-correction.keys'
 import {
   postOcrCorrectionEndpoints,
+  type PostOcrCorrectionProcessRequestDto,
   type PostOcrCorrectionProcessingResultDto,
   type RevertRequestDto,
   type RevertResponseDto,
@@ -12,13 +13,13 @@ export const usePostOcrCorrectionProcess = (
   options: UseMutationOptions<
     PostOcrCorrectionProcessingResultDto,
     Error,
-    { slug: string; inputDir: string; fileName: string; modelRunId?: string }
+    PostOcrCorrectionProcessRequestDto & { slug: string }
   > = {}
 ) => {
   return useMutation<
     PostOcrCorrectionProcessingResultDto,
     Error,
-    { slug: string; inputDir: string; fileName: string; modelRunId?: string }
+    PostOcrCorrectionProcessRequestDto & { slug: string }
   >({
     ...options,
     mutationKey: PostOcrCorrectionMutationKeys.process,

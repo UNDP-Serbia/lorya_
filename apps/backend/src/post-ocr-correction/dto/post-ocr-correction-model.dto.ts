@@ -1,7 +1,8 @@
-import { ApiProperty } from '@nestjs/swagger'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { AutoMap } from '@automapper/classes'
 import { PostOcrCorrectionModelType } from '../types/post-ocr-correction-model-type.enum'
 import { AccountDto } from '../../account/dto'
+import { LlmConfigDto } from 'src/llm/dto/llm-config.dto'
 
 export class PostOcrCorrectionModelDto {
   @ApiProperty({ type: String })
@@ -47,4 +48,7 @@ export class PostOcrCorrectionModelDto {
   @ApiProperty({ type: () => AccountDto, nullable: true })
   @AutoMap(() => AccountDto)
   uploadedBy: AccountDto | null
+
+  @ApiPropertyOptional({ type: () => LlmConfigDto, nullable: true })
+  llmConfig?: LlmConfigDto
 }

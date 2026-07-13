@@ -2,11 +2,19 @@ import { ApiProperty } from '@nestjs/swagger'
 import { OcrLineDto, OcrStatisticsDto } from '../../ocr/dto'
 
 export class PostOcrCorrectionStatisticsDto extends OcrStatisticsDto {
-  @ApiProperty({ description: 'Character Error Rate', example: 20.2 })
-  cer: number
+  @ApiProperty({
+    description: 'Character Error Rate',
+    example: 20.2,
+    nullable: true,
+  })
+  cer: number | null
 
-  @ApiProperty({ description: 'Word Error Rate', example: 10.4 })
-  wer: number
+  @ApiProperty({
+    description: 'Word Error Rate',
+    example: 10.4,
+    nullable: true,
+  })
+  wer: number | null
 }
 
 export class PostOcrCorrectionSegmentDataDto {
@@ -49,6 +57,13 @@ export class PostOcrCorrectionProcessingResultDto {
 export class PostOcrCorrectionResultsResponseDto {
   @ApiProperty({ description: 'Whether the query was successful' })
   success: boolean
+
+  @ApiProperty({
+    enum: ['BUILTIN', 'HUGGINGFACE', 'LITELLM'],
+    nullable: true,
+    description: 'Kind of model that produced these results, when known',
+  })
+  modelKind: string | null
 
   @ApiProperty({
     type: [PostOcrCorrectionSegmentDataDto],

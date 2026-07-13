@@ -170,7 +170,8 @@ const HomePageInner: React.FC = () => {
   )
 
   const ocrSegments = React.useMemo(
-    () => (fetchedOcrResults ? toEditorSegments(fetchedOcrResults) : []),
+    () =>
+      fetchedOcrResults?.data ? toEditorSegments(fetchedOcrResults.data) : [],
     [fetchedOcrResults]
   )
 
@@ -180,7 +181,9 @@ const HomePageInner: React.FC = () => {
 
   const postOcrSegments = React.useMemo(
     () =>
-      fetchedPostOcrResults ? toEditorSegments(fetchedPostOcrResults) : [],
+      fetchedPostOcrResults?.data
+        ? toEditorSegments(fetchedPostOcrResults.data)
+        : [],
     [fetchedPostOcrResults]
   )
 
@@ -620,8 +623,8 @@ const HomePageInner: React.FC = () => {
 
   React.useEffect(() => {
     if (
-      (fetchedOcrResults && fetchedOcrResults.length > 0) ||
-      (fetchedPostOcrResults && fetchedPostOcrResults.length > 0)
+      (fetchedOcrResults?.data?.length ?? 0) > 0 ||
+      (fetchedPostOcrResults?.data?.length ?? 0) > 0
     ) {
       setAdditionalRightCollapsed(false)
     }
@@ -707,6 +710,8 @@ const HomePageInner: React.FC = () => {
           setCollapsed={setAdditionalRightCollapsed}
           ocrSegments={ocrSegments}
           postOcrSegments={postOcrSegments}
+          ocrModelKind={fetchedOcrResults?.modelKind ?? null}
+          postOcrModelKind={fetchedPostOcrResults?.modelKind ?? null}
           selectedSegmentId={selectedSegmentId}
           activeTabOverride={additionalDrawerTabOverride}
           onTabOverrideApplied={() => setAdditionalDrawerTabOverride(null)}

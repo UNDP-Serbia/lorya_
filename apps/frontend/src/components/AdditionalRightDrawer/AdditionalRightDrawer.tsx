@@ -8,7 +8,8 @@ import {
 import fastForwardIcon from '../../assets/fast-forward-icon.svg'
 import textIcon from '../../assets/text-icon.svg'
 import clsx from 'clsx'
-import type { OcrEditorSegment } from '../../api'
+import type { ModelType, OcrEditorSegment } from '../../api'
+import { isLitellmModel } from '../../utils/llm-model'
 
 export type AdditionalRightDrawerProps = {
   width?: number
@@ -18,6 +19,8 @@ export type AdditionalRightDrawerProps = {
   setCollapsed: (collapsed: boolean) => void
   ocrSegments?: OcrEditorSegment[]
   postOcrSegments?: OcrEditorSegment[]
+  ocrModelKind?: ModelType | null
+  postOcrModelKind?: ModelType | null
   selectedSegmentId: string | null
   activeTabOverride?: 'ocr' | 'ocr_corrector' | null
   onTabOverrideApplied?: () => void
@@ -59,6 +62,8 @@ export const AdditionalRightDrawer: React.FC<AdditionalRightDrawerProps> = ({
   setCollapsed,
   ocrSegments,
   postOcrSegments,
+  ocrModelKind = null,
+  postOcrModelKind = null,
   selectedSegmentId,
   activeTabOverride,
   onTabOverrideApplied,
@@ -96,6 +101,10 @@ export const AdditionalRightDrawer: React.FC<AdditionalRightDrawerProps> = ({
 
   const activeSegments =
     activeTab === 'ocr' ? editableOcrSegments : editablePostOcrSegments
+
+  const showConfidence = !isLitellmModel(
+    activeTab === 'ocr' ? ocrModelKind : postOcrModelKind
+  )
 
   const activeTabRef = React.useRef(activeTab)
   activeTabRef.current = activeTab
@@ -258,7 +267,7 @@ export const AdditionalRightDrawer: React.FC<AdditionalRightDrawerProps> = ({
       </div>
 
       <div className='border-t-[0.5px] border-[#BCDDFF]' />
-      {!collapsed && (
+      {!collapsed && showConfidence && (
         <>
           <div className='flex w-full items-center gap-0 pr-[18px]'>
             <div className='px-4 py-2.5 w-full'>
@@ -277,8 +286,13 @@ export const AdditionalRightDrawer: React.FC<AdditionalRightDrawerProps> = ({
           </div>
         </>
       )}
+      {!collapsed && !showConfidence && (
+        <div className='flex w-full items-center justify-end pr-[18px] py-2.5'>
+          <CustomSwitcher checked={isEditMode} onChange={setIsEditMode} />
+        </div>
+      )}
 
-      {collapsed && (
+      {collapsed && showConfidence && (
         <>
           <div className='border rounded border-[#BCDDFF] text-[11px] text-[#292929] my-[15px] mx-1'>
             {threshold}
@@ -307,7 +321,8 @@ export const AdditionalRightDrawer: React.FC<AdditionalRightDrawerProps> = ({
               }
               iconPosition='start'
               absoluteMarker={
-                !collapsed && (
+                !collapsed &&
+                showConfidence && (
                   <div className='flex items-center gap-2 mb-2 justify-end pr-2 absolute top-4 right-3 z-99999'>
                     <MarkerDisplay
                       color='#BCDDFF'
@@ -348,11 +363,13 @@ export const AdditionalRightDrawer: React.FC<AdditionalRightDrawerProps> = ({
                           editingWord?.wordIndex === wIdx
 
                         const diff = threshold - word.confidence
-                        const isHighlighted = word.confidence < threshold
+                        const isHighlighted =
+                          showConfidence && word.confidence < threshold
 
-                        const opacity = isHighlighted
-                          ? 0.2 + (diff / threshold) * 0.8
-                          : 0
+                        const opacity =
+                          isHighlighted && threshold > 0
+                            ? 0.2 + (diff / threshold) * 0.8
+                            : 0
 
                         if (isEditMode && isCurrentlyEditing) {
                           return (

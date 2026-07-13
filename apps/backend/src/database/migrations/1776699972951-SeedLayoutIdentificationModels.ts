@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 
-export class SeedLayoutIdentificationModels1776699972951
-  implements MigrationInterface
-{
+export class SeedLayoutIdentificationModels1776699972951 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       INSERT INTO "layout_identification_models" ("id", "name", "type", "reference")

@@ -2,6 +2,7 @@ import { QueryClientKeys } from '../base.keys'
 
 export const AuthQueryKeys = {
   authenticated: [...QueryClientKeys.all, 'authenticated'],
+  currentUser: [...QueryClientKeys.all, 'currentUser'],
 }
 
 export const AuthMutationKeys = {

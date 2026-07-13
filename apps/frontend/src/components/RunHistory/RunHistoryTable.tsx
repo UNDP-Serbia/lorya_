@@ -136,9 +136,18 @@ const renderFileName = (file: RunHistoryFileDto) => (
   </span>
 )
 
-const SegmentTable: React.FC<{ segments: RunHistorySegmentDto[] }> = ({
-  segments,
-}) => {
+const formatRunConfidence = (
+  confidence: number | null,
+  modelKind?: string | null
+) => {
+  if (modelKind === 'LITELLM') return '/'
+  return confidence != null ? `${confidence} [agg]` : '/'
+}
+
+const SegmentTable: React.FC<{
+  segments: RunHistorySegmentDto[]
+  modelKind?: string | null
+}> = ({ segments, modelKind }) => {
   return (
     <div className='ml-[-0.5px] mt-[-1px] mb-[-1px] bg-[#FFFFFF]'>
       <table className='w-full border-collapse table-fixed border-0'>
@@ -167,7 +176,7 @@ const SegmentTable: React.FC<{ segments: RunHistorySegmentDto[] }> = ({
                 {renderStatusCell(segment.status, segment.reportUrl, true)}
               </td>
               <td className={SEGMENT_BODY_CELL_CLASS}>
-                {segment.confidence ?? '/'}
+                {formatRunConfidence(segment.confidence, modelKind)}
               </td>
               <td className={'border-r border-[#D3D3D3] bg-[#F1F1F1]'} />
               <td className={'border-r border-[#D3D3D3] bg-[#F1F1F1]'} />
@@ -183,7 +192,8 @@ const FileSegmentsRow: React.FC<{
   runId: string
   file: RunHistoryFileDto
   expanded: boolean
-}> = ({ runId, file, expanded }) => {
+  modelKind?: string | null
+}> = ({ runId, file, expanded, modelKind }) => {
   const { data: segments, isLoading } = useRunFileSegments(
     expanded ? runId : null,
     expanded ? file.fileId : null
@@ -214,7 +224,7 @@ const FileSegmentsRow: React.FC<{
       <td className='px-2 py-2 !border-l border-[#D3D3D3]' />
       <td className='border-b-0 border-[#D3D3D3] py-0' colSpan={5}>
         <div className='pl-0 w-[100%] min-w-[auto]'>
-          <SegmentTable segments={segments} />
+          <SegmentTable segments={segments} modelKind={modelKind} />
         </div>
       </td>
     </tr>
@@ -331,7 +341,7 @@ export const RunHistoryTable: React.FC = () => {
             )}
           </td>
           <td className={STATUS_CELL_CLASS}>
-            {item.confidence != null ? `${item.confidence} [agg]` : '/'}
+            {formatRunConfidence(item.confidence, item.modelKind)}
           </td>
           <td className={clsx(STATUS_CELL_CLASS, 'border-b-0')}>
             {item.runBy}
@@ -391,7 +401,7 @@ export const RunHistoryTable: React.FC = () => {
                     {renderStatusCell(file.status, file.reportUrl, true)}
                   </td>
                   <td className={clsx(MAIN_CELL_CLASS, 'bg-[#F1F1F1]')}>
-                    {file.confidence != null ? `${file.confidence} [agg]` : '/'}
+                    {formatRunConfidence(file.confidence, item.modelKind)}
                   </td>
                   <td
                     className={
@@ -411,6 +421,7 @@ export const RunHistoryTable: React.FC = () => {
                     runId={item.id}
                     file={file}
                     expanded={fileExpanded}
+                    modelKind={item.modelKind}
                   />
                 )}
               </React.Fragment>

@@ -27,9 +27,9 @@ export class OcrResultEntity extends BaseEntity {
   @AutoMap()
   script: string
 
-  @Column({ type: 'float' })
+  @Column({ type: 'float', nullable: true })
   @AutoMap()
-  avgWordConfidence: number
+  avgWordConfidence: number | null
 
   @Column({ type: 'jsonb' })
   @AutoMap()

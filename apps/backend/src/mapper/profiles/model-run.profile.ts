@@ -22,6 +22,7 @@ import { mapRunStatusToFrontend } from 'src/model-run/helpers'
 
 type EnrichedModelRun = ModelRunEntity & {
   modelName: string | null
+  modelKind: string | null
   activities: EnrichedActivity[]
 }
 
@@ -60,6 +61,10 @@ export class ModelRunProfile extends AutomapperProfile {
         forMember(
           d => d.modelName,
           mapFrom(s => (s as EnrichedModelRun).modelName ?? '')
+        ),
+        forMember(
+          d => d.modelKind,
+          mapFrom(s => (s as EnrichedModelRun).modelKind ?? null)
         ),
         forMember(
           d => d.runBy,

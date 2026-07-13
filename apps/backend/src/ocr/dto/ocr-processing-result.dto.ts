@@ -7,8 +7,9 @@ export class OcrWordDto {
   @ApiProperty({
     description: 'Word confidence score',
     example: 96.604668,
+    nullable: true,
   })
-  word_confidence: number
+  word_confidence: number | null
 
   @ApiProperty({ description: 'Recognized word text', example: 'На' })
   word_text: string
@@ -41,8 +42,9 @@ export class OcrStatisticsDto {
   @ApiProperty({
     description: 'Average word confidence score',
     example: 92.788392,
+    nullable: true,
   })
-  avg_word_confidence: number
+  avg_word_confidence: number | null
 }
 
 export class OcrDataDto {
@@ -114,6 +116,13 @@ export class OcrResultsResponseDto {
     example: true,
   })
   success: boolean
+
+  @ApiProperty({
+    enum: ['BUILTIN', 'HUGGINGFACE', 'LITELLM'],
+    nullable: true,
+    description: 'Kind of model that produced these results, when known',
+  })
+  modelKind: string | null
 
   @ApiProperty({
     type: [OcrSegmentDataDto],

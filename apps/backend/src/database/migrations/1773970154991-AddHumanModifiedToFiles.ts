@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 
-export class AddHumanModifiedToFiles1773970154991
-  implements MigrationInterface
-{
+export class AddHumanModifiedToFiles1773970154991 implements MigrationInterface {
   name = 'AddHumanModifiedToFiles1773970154991'
 
   public async up(queryRunner: QueryRunner): Promise<void> {

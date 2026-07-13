@@ -2,6 +2,7 @@ export type OcrProcessRequestDto = {
   inputDir: string
   fileName: string
   modelRunId?: string
+  prompt?: string
 }
 
 export type OcrWord = {
@@ -46,5 +47,6 @@ export type OcrProcessingResultDto = {
 
 export type OcrResultsResponseDto = {
   success: boolean
+  modelKind?: 'BUILTIN' | 'HUGGINGFACE' | 'LITELLM' | null
   data: OcrSegmentData[]
 }

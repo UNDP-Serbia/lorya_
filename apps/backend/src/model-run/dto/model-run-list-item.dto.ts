@@ -48,6 +48,15 @@ export class ModelRunListItemDto {
 
   @AutoMap()
   @ApiProperty({
+    enum: ['BUILTIN', 'HUGGINGFACE', 'LITELLM'],
+    nullable: true,
+    example: 'BUILTIN',
+    description: 'Concrete model kind (Tesseract, HuggingFace, Custom LLM)',
+  })
+  modelKind: string | null
+
+  @AutoMap()
+  @ApiProperty({
     type: String,
     nullable: true,
     example: null,

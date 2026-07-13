@@ -16,6 +16,7 @@ import { DirectoryService } from 'src/directory/directory.service'
 import { FileService } from 'src/file/file.service'
 import { ActivityService } from 'src/activity/activity.service'
 import { ActivityOperation } from 'src/activity/enums'
+import { ScriptExecutionError } from './script-execution.error'
 
 @Injectable()
 export class AiService {
@@ -32,10 +33,19 @@ export class AiService {
   async runScript(
     command: string,
     args?: string[],
-    options?: SpawnOptionsWithoutStdio
+    options?: SpawnOptionsWithoutStdio,
+    input?: string
   ): Promise<unknown> {
     return new Promise((resolve, reject) => {
       const process = spawn(command, [...args], options)
+
+      if (input !== undefined && process.stdin) {
+        // Surface stdin write errors (e.g. EPIPE if the child exits before
+        // reading) instead of letting the promise hang on 'close'.
+        process.stdin.on('error', reject)
+        process.stdin.write(input)
+        process.stdin.end()
+      }
 
       let result = ''
       let error = ''
@@ -57,8 +67,11 @@ export class AiService {
       process.on('close', code => {
         if (code !== 0) {
           reject(
-            new Error(
-              `Command failed: ${command} ${args.join(' ')}. ${error || 'Unknown error'}`
+            new ScriptExecutionError(
+              `Command failed: ${command} ${args?.join(' ') ?? ''}. ${error || 'Unknown error'}`,
+              result,
+              error,
+              code
             )
           )
         } else {

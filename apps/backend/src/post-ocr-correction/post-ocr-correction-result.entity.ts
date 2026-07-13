@@ -27,17 +27,17 @@ export class PostOcrCorrectionResultEntity extends BaseEntity {
   @AutoMap()
   script: string
 
-  @Column({ type: 'float' })
+  @Column({ type: 'float', nullable: true })
   @AutoMap()
-  avgWordConfidence: number
+  avgWordConfidence: number | null
 
   @Column({ type: 'float', nullable: true })
   @AutoMap()
-  cer: number
+  cer: number | null
 
   @Column({ type: 'float', nullable: true })
   @AutoMap()
-  wer: number
+  wer: number | null
 
   @Column({ type: 'jsonb' })
   @AutoMap()

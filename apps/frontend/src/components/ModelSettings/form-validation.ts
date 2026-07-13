@@ -1,8 +1,9 @@
 import * as Yup from 'yup'
 
 export type SchemaParams = {
-  isOcrModel?: boolean
-  activeSection?: 'model' | 'tesseract'
+  showTesseractSection?: boolean
+  showCustomLlmSection?: boolean
+  activeSection?: 'model' | 'tesseract' | 'customLlm'
   isEditing?: boolean
 }
 
@@ -60,18 +61,35 @@ const tesseractOnly = {
   tesseractConfig: Yup.mixed().required('tesseract config is required'),
 }
 
+const customLlmOnly = (isEditing: boolean) => ({
+  customLlmConfig: (isEditing
+    ? Yup.mixed().nullable()
+    : Yup.mixed().required('Custom LLM config is required')
+  ).test({
+    name: 'custom-llm-config-ext',
+    message: 'Custom LLM config must be a .json file',
+    test: hasExtension(['.json']),
+  }),
+  outputFormatPrompt: Yup.string()
+    .trim()
+    .required('Output format instructions are required'),
+})
+
 export const getModelSettingsSchema = ({
-  isOcrModel,
+  showTesseractSection,
+  showCustomLlmSection,
   activeSection,
   isEditing = false,
 }: SchemaParams) => {
-  if (!isOcrModel) {
+  const hasExtraSections = showTesseractSection || showCustomLlmSection
+
+  if (!hasExtraSections) {
     return Yup.object({
       ...baseCommon,
       ...modelOnly(isEditing),
     })
   }
-  if (activeSection === 'tesseract') {
+  if (activeSection === 'tesseract' && showTesseractSection) {
     return Yup.object({
       ...baseCommon,
       source: Yup.string().notRequired(),
@@ -81,7 +99,25 @@ export const getModelSettingsSchema = ({
       configFile: Yup.mixed().notRequired(),
       inputMapperFile: Yup.mixed().notRequired(),
       outputMapperFile: Yup.mixed().notRequired(),
+      customLlmConfig: Yup.mixed().notRequired(),
       ...tesseractOnly,
+    })
+  }
+  if (activeSection === 'customLlm') {
+    return Yup.object({
+      ...baseCommon,
+      source: Yup.string().notRequired(),
+      localUpload: Yup.mixed().nullable(),
+      fetchUrl: Yup.string().notRequired(),
+      hfUrl: Yup.string().notRequired(),
+      configFile: Yup.mixed().notRequired(),
+      inputMapperFile: Yup.mixed().notRequired(),
+      outputMapperFile: Yup.mixed().notRequired(),
+      executable: Yup.string().notRequired(),
+      languageData: Yup.string().notRequired(),
+      tesseractLangCode: Yup.string().notRequired(),
+      tesseractConfig: Yup.mixed().notRequired(),
+      ...customLlmOnly(isEditing),
     })
   }
   return Yup.object({
@@ -91,6 +127,7 @@ export const getModelSettingsSchema = ({
     languageData: Yup.string().notRequired(),
     tesseractLangCode: Yup.string().notRequired(),
     tesseractConfig: Yup.mixed().notRequired(),
+    customLlmConfig: Yup.mixed().notRequired(),
   })
 }
 

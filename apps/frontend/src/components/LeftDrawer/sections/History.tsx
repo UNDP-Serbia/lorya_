@@ -1,7 +1,7 @@
 import React from 'react'
 import change from '../../../assets/change-history-icon.svg'
 import modelChange from '../../../assets/change-history-operations-icon.svg'
-import HoverIcon from '../../helpers/HoverIcon'
+// import HoverIcon from '../../helpers/HoverIcon'
 import {
   ActivityCategory,
   ActivityStatus,
@@ -92,7 +92,7 @@ export const History: React.FC<HistoryProps> = ({ fileId }) => {
     <div className='flex flex-col'>
       {rows.map((row, index) => {
         const selected = isSelected(index)
-        const isCutoff = selectedIndex === index
+        // const isCutoff = selectedIndex === index
 
         return (
           <div
@@ -123,8 +123,8 @@ export const History: React.FC<HistoryProps> = ({ fileId }) => {
                 </div>
               </div>
             </div>
-
-            {isCutoff && (
+            {/* TODO uncomment this when we have the rollback feature? */}
+            {/* {isCutoff && (
               <button
                 type='button'
                 onClick={() => undefined}
@@ -132,7 +132,7 @@ export const History: React.FC<HistoryProps> = ({ fileId }) => {
               >
                 <HoverIcon name='rollback-icon' className='w-3' />
               </button>
-            )}
+            )} */}
           </div>
         )
       })}

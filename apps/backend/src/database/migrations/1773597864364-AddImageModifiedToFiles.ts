@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 
-export class AddImageModifiedToFiles1773597864364
-  implements MigrationInterface
-{
+export class AddImageModifiedToFiles1773597864364 implements MigrationInterface {
   name = 'AddImageModifiedToFiles1773597864364'
 
   public async up(queryRunner: QueryRunner): Promise<void> {

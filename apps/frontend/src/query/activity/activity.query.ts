@@ -12,6 +12,7 @@ export const useFileActivity = (
   useQuery<ActivityDto[], Error, ActivityDto[]>({
     queryKey: ActivityQueryKeys.byFile(fileId),
     queryFn: () => activityEndpoints.getByFile(fileId as string),
+    meta: { suppressGlobalLoader: true },
     enabled: !!fileId,
     refetchInterval: 5000,
     refetchIntervalInBackground: false,

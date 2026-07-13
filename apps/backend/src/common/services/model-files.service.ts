@@ -38,6 +38,11 @@ export class ModelFilesService {
     return relativePath
   }
 
+  async readText(relativePath: string): Promise<string> {
+    const absolutePath = this.pathService.getAbsolutePath(relativePath)
+    return fs.readFile(absolutePath, 'utf8')
+  }
+
   async deleteFile(relativePath: string): Promise<void> {
     const absolutePath = this.pathService.getAbsolutePath(relativePath)
     try {

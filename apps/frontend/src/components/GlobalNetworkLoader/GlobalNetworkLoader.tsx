@@ -8,7 +8,11 @@ const SHOW_DELAY_MS = 150
 const MIN_VISIBLE_MS = 300
 
 export const GlobalNetworkLoader: React.FC = () => {
-  const fetching = useIsFetching()
+  const fetching = useIsFetching({
+    predicate: query =>
+      query.state.fetchStatus === 'fetching' &&
+      !query.meta?.suppressGlobalLoader,
+  })
   const mutating = useIsMutating()
   const hasNetworkActivity = useMemo(
     () => fetching + mutating > 0,

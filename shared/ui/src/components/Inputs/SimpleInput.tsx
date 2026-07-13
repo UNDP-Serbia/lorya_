@@ -60,8 +60,10 @@ const CssTextField = styled(TextField)({
   },
 })
 
-export interface UniversalInputProps
-  extends Omit<TextFieldProps, 'value' | 'onChange' | 'type'> {
+export interface UniversalInputProps extends Omit<
+  TextFieldProps,
+  'value' | 'onChange' | 'type'
+> {
   value: string | number
   onChange: (value: number | string | null) => void
   type?: React.InputHTMLAttributes<unknown>['type']

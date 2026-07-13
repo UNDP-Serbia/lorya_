@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { IsOptional, IsString, IsUUID } from 'class-validator'
+import { IsObject, IsOptional, IsString, IsUUID } from 'class-validator'
 import { IsPath, TransformPath } from 'src/common/decorators'
 import { DirectoryEntryType } from 'src/file-manager/types/directory-entry-type.enum'
 
@@ -31,4 +31,22 @@ export class ModelProcessDto {
     example: 'a1b2c3d4-e5f6-7890-abcd-ef0123456789',
   })
   modelRunId?: string
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      'Override prompt (LITELLM models only; ignored for built-in models)',
+  })
+  prompt?: string
+
+  @IsOptional()
+  @IsObject()
+  @ApiPropertyOptional({
+    type: Object,
+    description:
+      'Override LLM parameters, e.g. { temperature, max_tokens } (LITELLM only)',
+  })
+  parameters?: Record<string, unknown>
 }

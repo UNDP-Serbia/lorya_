@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 
-export class AddPostOcrCorrectionResults1773619054566
-  implements MigrationInterface
-{
+export class AddPostOcrCorrectionResults1773619054566 implements MigrationInterface {
   name = 'AddPostOcrCorrectionResults1773619054566'
 
   public async up(queryRunner: QueryRunner): Promise<void> {

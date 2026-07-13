@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm'
 
-export class AddLayoutIdentificationModelsTable1776699686029
-  implements MigrationInterface
-{
+export class AddLayoutIdentificationModelsTable1776699686029 implements MigrationInterface {
   name = 'AddLayoutIdentificationModelsTable1776699686029'
 
   public async up(queryRunner: QueryRunner): Promise<void> {

@@ -55,6 +55,10 @@ export class AuthService {
     return this.accountService.createAccount(data)
   }
 
+  async getMe(payload: JwtPayload) {
+    return this.accountService.getAccount({ id: payload.sub })
+  }
+
   async refreshToken(data: RefreshTokenRequestDto, payload: JwtPayload) {
     try {
       const refreshTokenPayload = await this.jwtService.verifyAsync(
